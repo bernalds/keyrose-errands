@@ -915,6 +915,8 @@ function viewSetup(){
   im.querySelector("#shotfile").onchange=e=>readScreenshot(e.target.files[0],e.target);
   sampleImages().then(ok=>{ if(!ok){ const l=im.querySelector("#shotline"); l&&(l.hidden=true); } });
   v.appendChild(im);
+  // Account (sync.js)
+  if(typeof accountSection==="function") v.appendChild(accountSection());
   // Backup & display
   const bk=el('<section class="sect"><h2>Display and backup</h2><div class="card"><div class="line"><span>Large text</span><button class="mini" id="big"></button></div><div class="line"><span>Back up everything as a file</span><button class="mini" id="exp">Export</button></div><div class="line"><span>Restore from a backup file</span><label class="mini" style="cursor:pointer">Import<input type="file" accept="application/json,.json" id="impfile" hidden></label></div><div class="line"><span>Show hidden suggestions again</span><button class="mini" id="undis">Reset</button></div><div class="line"><span>Delete all data</span><button class="mini" id="wipe" style="color:var(--danger)">Delete…</button></div></div><p class="hint" id="syncnote"></p></section>');
   const big=bk.querySelector("#big"); big.textContent=document.documentElement.classList.contains("big")?"On":"Off";
@@ -923,7 +925,7 @@ function viewSetup(){
   bk.querySelector("#impfile").onchange=e=>importBackup(e.target.files[0]);
   bk.querySelector("#undis").onclick=()=>{ S.state.dismissed={}; putState(); toast("Suggestions reset"); };
   bk.querySelector("#wipe").onclick=wipeSheet;
-  bk.querySelector("#syncnote").textContent= "Your list is saved on this phone only and works offline. To move it to another phone, use Backup and Restore below.";
+  bk.querySelector("#syncnote").textContent= (typeof acct!=="undefined"&&acct.user) ? "Your list is saved on this phone and in your account, and works offline. Backup still makes a file copy." : "Your list is saved on this phone only and works offline. To move it to another phone, sign in above, or use Backup and Restore.";
   v.appendChild(bk);
   return v;
 }
@@ -1208,8 +1210,8 @@ try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(
   }
 })();
 
-/* ---------- Connect to the artifact's storage ---------- */
-(async()=>{
+/* ---------- Connect to the artifact's storage (accounts: see sync.js) ---------- */
+if(!(window.claude&&claude.use)){ setSync("local"); render(); } else (async()=>{
   setSync("busy");
   try{
     if(window.claude&&claude.use){
@@ -1233,3 +1235,5 @@ try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(
 })();
 if("serviceWorker" in navigator) addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 </script>
+<script src="supabase.js"></script>
+<script src="sync.js"></script>
