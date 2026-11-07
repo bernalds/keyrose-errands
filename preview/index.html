@@ -1,0 +1,1239 @@
+<title>Errands</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#151412">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap">
+<style>
+/* Layout: one-thumb phone app in the Keyrose look. Brand header band, scrolling view, add bar + tab bar pinned to the bottom. Single dark look: the brand lives on Graphite. */
+:root{
+  --bg:#1C1B19; --surface:#25231F; --raised:#2F2C27; --band:#151412; --line:#3A3631;
+  --fg:#EFEBE5; --muted:#B3ACA2; --faint:#8A847B;
+  --gold:#C9A45C; --gold-light:#DCC089; --accent:#C9A45C; --accent-ink:#151412;
+  --good:#8DBA8E; --danger:#DD8270; --est:#B3ACA2; --cart:#22251F;
+  --f-display:"Montserrat",-apple-system,"Segoe UI",sans-serif;
+  --f-body:"Montserrat",-apple-system,"Segoe UI",sans-serif;
+  --r:12px; --fs:15px;
+  color-scheme:dark;
+}
+:root.big{--fs:18px}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:var(--fs);line-height:1.4;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--band)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px 8px;display:flex;flex-direction:column;gap:10px}
+.hrow{display:flex;align-items:center;gap:10px}
+h1{font-family:var(--f-display);font-weight:700;font-size:1.6em;margin:0;letter-spacing:-.01em;line-height:1.15;text-wrap:balance}
+.sync{font-size:.75em;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.sync i{width:7px;height:7px;border-radius:50%;background:var(--good);display:inline-block}
+.sync.off i{background:var(--gold)} .sync.busy i{background:var(--muted)}
+.search{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+
+main{padding-block:4px 180px}
+.view{display:flex;flex-direction:column;gap:18px}
+.seg{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;padding:7px 8px;border-radius:7px;color:var(--muted);font-size:.875em}
+.seg button[aria-pressed="true"]{background:var(--raised);color:var(--fg);font-weight:600}
+
+.ghead{display:flex;align-items:baseline;gap:8px;font-family:var(--f-display);font-weight:600;font-size:1.05em;padding:0 2px 6px}
+.ghead .n{color:var(--faint);font-family:var(--f-body);font-weight:400;font-size:.85em}
+.ghead .tag{font-family:var(--f-body);font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:2px 6px;align-self:center}
+.ghead .tag.est{color:var(--est)}
+.group{display:flex;flex-direction:column}
+.rows{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.swipe{position:relative;overflow:hidden;border-top:1px solid var(--line)}
+.swipe:first-child{border-top:0}
+.under{position:absolute;inset:0;display:flex;justify-content:space-between;align-items:center;padding:0 18px;font-weight:700;font-size:.85em}
+.under .l{color:var(--good)} .under .r{color:var(--danger)}
+.row{position:relative;background:var(--surface);display:flex;align-items:center;gap:12px;padding:12px 12px;min-height:52px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.row .main{flex:1;min-width:0}
+.row .name{font-weight:600;overflow-wrap:anywhere}
+.row .sub{font-size:.8em;color:var(--muted);overflow-wrap:anywhere}
+.qty{font-variant-numeric:tabular-nums;font-weight:600;color:var(--gold-light);margin-right:6px}
+.catbtn{width:38px;height:38px;border-radius:10px;background:var(--raised);flex:none;display:grid;place-items:center;line-height:0}
+.catbtn svg.lucide{width:20px;height:20px}
+.catbtn.dot{width:28px;height:38px;background:none;margin-left:-6px}
+.catbtn.dot i{display:block;width:12px;height:12px;border-radius:50%}
+.iconbtn{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;color:var(--muted)}
+.iconbtn[aria-pressed="true"]{color:var(--gold-light);background:var(--surface)}
+.ctile{line-height:0}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:.75em;border:1px solid var(--line);border-radius:999px;padding:1px 8px;color:var(--muted)}
+
+.shop .row{min-height:64px;padding:14px 12px}
+.box{width:30px;height:30px;border-radius:50%;border:2px solid var(--muted);flex:none;display:grid;place-items:center}
+.row.incart{background:var(--cart)}
+.row.incart .box{background:var(--good);border-color:var(--good)}
+.row.incart .box::after{content:"";width:12px;height:7px;border:3px solid var(--accent-ink);border-top:0;border-right:0;transform:translateY(-2px) rotate(-45deg)}
+.row.incart .name{color:var(--muted)}
+.aisle{font-size:.75em;font-weight:600;border-radius:8px;padding:5px 9px;background:var(--band);border:1px solid var(--gold);color:var(--gold-light);white-space:nowrap;font-variant-numeric:tabular-nums}
+.aisle.est{border-color:var(--line);color:var(--muted)}
+.fold{display:flex;justify-content:space-between;width:100%;padding:12px;color:var(--muted);font-size:.875em;border-top:1px solid var(--line);background:var(--surface)}
+.done .ghead{opacity:.55}
+
+.progress{display:flex;flex-direction:column;gap:6px}
+.pbar{height:8px;border-radius:99px;background:var(--surface);border:1px solid var(--line);overflow:hidden}
+.pbar b{display:block;height:100%;background:var(--gold);transition:width .25s}
+.ptext{display:flex;justify-content:space-between;font-size:.875em;color:var(--muted)}
+.ptext strong{color:var(--fg);font-variant-numeric:tabular-nums}
+
+.strip{display:flex;flex-direction:column;gap:8px}
+.strip h2,.sect h2{font-size:11px;margin:0;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.sugg{flex:none;display:flex;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.sugg button{padding:8px 4px 8px 12px;display:flex;flex-direction:column;align-items:flex-start;line-height:1.15}
+.sugg button small{font-size:.7em;color:var(--muted)}
+.sugg .x{padding:8px 12px 8px 8px;color:var(--faint);font-size:1.1em}
+.fav{flex:none;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:8px 12px}
+.fav{display:inline-flex;align-items:center;gap:6px}.fav svg{color:var(--gold)}
+
+.empty{text-align:center;color:var(--muted);padding:28px 12px;display:flex;flex-direction:column;gap:6px;align-items:center}
+.empty b{color:var(--fg);font-size:1.15em;font-weight:700}
+
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--band);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.addbar{display:flex;flex-direction:column;gap:8px;padding-block:10px 4px}
+.addrow{display:flex;gap:8px}
+.addrow input{flex:1;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.btn{background:var(--gold);color:var(--accent-ink);font-weight:600;border:1px solid var(--gold);border-radius:12px;padding:12px 16px;white-space:nowrap}
+.btn.wide{width:100%;padding:15px;background:var(--band);color:var(--gold-light)}
+.btn.ghost{background:var(--raised);border-color:var(--line);color:var(--fg)}
+.btn.danger{background:none;border-color:var(--danger);color:var(--danger)}
+.btn:disabled{opacity:.45}
+.recent{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.recent button{flex:none;font-size:.85em;background:var(--raised);border-radius:999px;padding:6px 12px}
+.shopbar{padding-block:10px 4px}
+nav.tabs{display:grid;grid-template-columns:repeat(4,1fr)}
+nav.tabs a{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0 10px;color:var(--faint);text-decoration:none;font-size:11px;font-weight:600;letter-spacing:.04em}
+nav.tabs a svg{width:22px;height:22px}
+nav.tabs a[aria-current="page"]{color:var(--accent)}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 8px);width:max-content;z-index:30;background:var(--raised);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:10px 10px 10px 16px;display:flex;align-items:center;gap:14px;max-width:calc(100% - 32px);box-shadow:0 6px 24px rgba(0,0,0,.35);font-size:.9em}
+.toast button{color:var(--gold-light);font-weight:600;padding:4px 6px}
+
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:20}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--surface);border-radius:18px 18px 0 0;max-height:88%;overflow:auto;padding-block:14px calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
+.sheet h3{margin:0;font-size:1.25em;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+.sheet h3 button{color:var(--muted);font-size:1em;padding:4px 8px}
+label.f{display:flex;flex-direction:column;gap:5px;font-size:.85em;color:var(--muted)}
+label.f input,label.f select,label.f textarea,.inp{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 12px;color:var(--fg);font-size:var(--fs)}
+textarea{min-height:120px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.catgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.catgrid button{display:flex;gap:8px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;text-align:left}
+.catgrid button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold-light);font-weight:600}
+.storepick{display:flex;flex-wrap:wrap;gap:8px}
+.storepick button{border:1px solid var(--line);border-radius:999px;padding:8px 14px;background:var(--bg)}
+.storepick button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold-light);font-weight:600}
+.money{display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:0 12px}
+.money span{color:var(--muted);font-weight:700}
+.money input{border:0;background:none;padding:14px 0;font-size:1.75em;font-weight:500;width:100%;font-variant-numeric:tabular-nums}
+.money input:focus{outline:none}
+.receipt{border:1px dashed var(--line);border-radius:10px;padding:10px 12px;font-size:.85em;color:var(--muted);display:flex;flex-direction:column;gap:3px;max-height:150px;overflow:auto}
+.receipt div{display:flex;justify-content:space-between;gap:10px}
+
+.sect{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:10px}
+.line{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.line + .line{border-top:1px solid var(--line);padding-top:10px}
+.muted{color:var(--muted);font-size:.85em}
+.link{color:var(--gold-light);font-weight:600}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.stat b{display:block;font-size:1.75em;font-weight:500;color:var(--gold-light);font-variant-numeric:tabular-nums}
+.stat span{font-size:.8em;color:var(--muted)}
+.trip{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;text-align:left;width:100%}
+.trip + .trip{border-top:1px solid var(--line)}
+.trip .amt{font-weight:500;font-size:1.15em;font-variant-numeric:tabular-nums}
+.catline{display:flex;align-items:center;gap:8px}
+.catline select{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 6px;color:var(--fg);max-width:34%}
+.catline input.nm{flex:1;min-width:0}
+.mini{background:var(--raised);border-radius:8px;padding:8px 10px;font-size:.85em;flex:none}
+.hint{font-size:.8em;color:var(--faint)}
+svg.lucide{width:1.15em;height:1.15em;stroke-width:2;flex:none}
+.brand{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.mk{color:var(--gold);width:26px;height:26px;flex:none}
+.gw{font-weight:400;letter-spacing:.32em;font-size:.8em;white-space:nowrap;color:var(--fg)}
+.gw b{font-weight:400;color:var(--gold)}
+.ctile{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;color:#EFEBE5;flex:none}
+.ctile.sm{width:26px;height:26px;border-radius:7px}
+.ctile.sm svg.lucide{width:15px;height:15px}
+.ghead .ctile{align-self:center}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="c-o-bold" viewBox="0 0 100 100"><g fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="miter"><rect x="20" y="20" width="60" height="60"/><rect x="20" y="20" width="60" height="60" transform="rotate(45 50 50)"/><circle cx="50" cy="50" r="22"/></g><g fill="currentColor"><circle cx="50" cy="44" r="7"/><path d="M45.5 47.5 L43.5 62 H56.5 L54.5 47.5 Z"/></g></symbol></defs></svg>
+<div id="app">
+  <header class="wrap" id="hdr">
+    <div class="hrow"><span class="brand"><svg class="mk" viewBox="0 0 100 100" aria-hidden="true"><use href="#c-o-bold"/></svg><span class="gw">KEY<b>ROSE</b></span></span><span class="sync" id="sync"><i></i><span>Loading</span></span><button class="iconbtn" id="searchbtn" aria-label="Search your list" aria-pressed="false" hidden><i data-lucide="search"></i></button></div>
+    <h1 id="title">Errands</h1>
+    <p class="hint" id="pvnote" style="margin:0" hidden>Preview with sample data. Your real list isn't touched.</p>
+    <input id="search" class="search" type="search" placeholder="Search your list" autocomplete="off" hidden>
+  </header>
+  <main class="wrap" id="view"></main>
+  <div class="dock">
+    <div class="wrap addbar" id="addbar">
+      <div class="recent" id="recent"></div>
+      <form class="addrow" id="addform" autocomplete="off">
+        <input id="addinput" enterkeyhint="done" placeholder="milk, get gas, home depot: filter" aria-label="Add items or errands">
+        <button class="btn" type="submit">Add</button>
+      </form>
+    </div>
+    <div class="wrap shopbar" id="shopbar" hidden><button class="btn wide" id="completebtn">Complete trip</button></div>
+    <nav class="tabs" aria-label="Sections">
+      <a href="#list" data-tab="list"><i data-lucide="list"></i>List</a>
+      <a href="#shop" data-tab="shop"><i data-lucide="car"></i>Run</a>
+      <a href="#history" data-tab="history"><i data-lucide="receipt-text"></i>History</a>
+      <a href="#setup" data-tab="setup"><i data-lucide="sliders-horizontal"></i>Settings</a>
+    </nav>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ---------- Product knowledge ---------- */
+// Keyrose Forest palette: muted, earthy category colours
+const FOREST = [["Moss","#4F6B3A"],["Rust","#8A4E32"],["Lake","#35656E"],["Ochre","#7A6234"],["Bark","#5E4A3A"],["Plum","#6E4A62"],["Slate","#4F5675"],["Olive","#6E6A34"],["Cranberry","#874458"],["Clay","#85574A"],["Pine","#2F6650"],["Brick","#8E4545"],["Teal","#3E5F58"],["Stone","#5E5A55"]];
+// Lucide outline icons (24px grid, 2px stroke), bundled so they work without a network fetch
+const SVG = {
+  list:'<path d="M3 12h.01"/><path d="M3 18h.01"/><path d="M3 6h.01"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M8 6h13"/>',
+  "shopping-cart":'<circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>',
+  "receipt-text":'<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M14 8H8"/><path d="M16 12H8"/><path d="M13 16H8"/>',
+  "sliders-horizontal":'<path d="M21 4h-7"/><path d="M10 4H3"/><path d="M21 12h-9"/><path d="M8 12H3"/><path d="M21 20h-5"/><path d="M12 20H3"/><path d="M14 2v4"/><path d="M8 10v4"/><path d="M16 18v4"/>',
+  x:'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  star:'<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/>',
+  "arrow-up":'<path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>',
+  ellipsis:'<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
+  store:'<path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v11h16V9"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/><path d="M10 20v-5h4v5"/>',
+  house:'<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  carrot:'<path d="M2.27 21.7s9.87-3.5 12.73-6.36a4.5 4.5 0 0 0-6.36-6.37C5.77 11.84 2.27 21.7 2.27 21.7z"/><path d="M8.64 14l-2.05-2.04"/><path d="M15.34 15l-2.46-2.46"/><path d="M22 9s-1.33-2-3.5-2C16.86 7 15 9 15 9s1.33 2 3.5 2S22 9 22 9z"/><path d="M15 2s-2 1.33-2 3.5S15 9 15 9s2-1.84 2-3.5C17 3.33 15 2 15 2z"/>',
+  apple:'<path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"/><path d="M10 2c1 .5 2 2 2 5"/>',
+  leaf:'<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',
+  beef:'<circle cx="12.5" cy="8.5" r="2.5"/><path d="M12.5 2a6.5 6.5 0 0 0-6.22 4.6c-1.1 3.13-.78 3.9-3.18 6.08A3 3 0 0 0 5 18c4 0 8.4-1.8 11.4-4.3A6.5 6.5 0 0 0 12.5 2Z"/><path d="m18.5 6 2.19 4.5a6.48 6.48 0 0 1 .31 2 6.49 6.49 0 0 1-2.6 5.2C15.4 20.2 11 22 7 22a3 3 0 0 1-2.68-1.66L2.4 16.5"/>',
+  fish:'<path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.47-3.44 6-7 6s-7.56-2.53-8.5-6Z"/><path d="M18 12v.5"/><path d="M16 17.93a9.77 9.77 0 0 1 0-11.86"/><path d="M7 10.67C7 8 5.58 5.97 2.73 5.5c-1 1.5-1 5 .23 6.5-1.24 1.5-1.24 5-.23 6.5C5.58 18.03 7 16 7 13.33"/>',
+  milk:'<path d="M8 2h8"/><path d="M9 2v2.789a4 4 0 0 1-.672 2.219l-.656.984A4 4 0 0 0 7 10.212V20a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-9.789a4 4 0 0 0-.672-2.219l-.656-.984A4 4 0 0 1 15 4.788V2"/><path d="M7 15a6.472 6.472 0 0 1 5 0 6.47 6.47 0 0 0 5 0"/>',
+  egg:'<path d="M12 22c6.23-.05 7.87-5.57 7.5-10-.36-4.34-3.95-9.96-7.5-10-3.55.04-7.14 5.66-7.5 10-.37 4.43 1.27 9.95 7.5 10z"/>',
+  wheat:'<path d="M2 22 16 8"/><path d="M3.47 12.53 5 11l1.53 1.53a3.5 3.5 0 0 1 0 4.94L5 19l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M7.47 8.53 9 7l1.53 1.53a3.5 3.5 0 0 1 0 4.94L9 15l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M11.47 4.53 13 3l1.53 1.53a3.5 3.5 0 0 1 0 4.94L13 11l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M20 2h2v2a4 4 0 0 1-4 4h-2V6a4 4 0 0 1 4-4Z"/><path d="M11.47 17.47 13 19l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L5 19l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/><path d="M15.47 13.47 17 15l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L9 15l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/><path d="M19.47 9.47 21 11l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L13 11l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/>',
+  soup:'<path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9Z"/><path d="M7 21h10"/><path d="M19.5 12 22 6"/><path d="M16.25 3c.27.1.8.53.75 1.36-.06.83-.93 1.2-1 2.02-.05.78.34 1.24.73 1.62"/><path d="M11.25 3c.27.1.8.53.74 1.36-.05.83-.93 1.2-.98 2.02-.06.78.33 1.24.72 1.62"/><path d="M6.25 3c.27.1.8.53.75 1.36-.06.83-.93 1.2-1 2.02-.05.78.34 1.24.74 1.62"/>',
+  cookie:'<path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/><path d="M8.5 8.5v.01"/><path d="M16 15.5v.01"/><path d="M12 12v.01"/><path d="M11 17v.01"/><path d="M7 14v.01"/>',
+  "cup-soda":'<path d="m6 8 1.75 12.28a2 2 0 0 0 2 1.72h4.54a2 2 0 0 0 2-1.72L18 8"/><path d="M5 8h14"/><path d="M7 15a6.47 6.47 0 0 1 5 0 6.47 6.47 0 0 0 5 0"/><path d="m12 8 1-6h2"/>',
+  coffee:'<path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/>',
+  wine:'<path d="M8 22h8"/><path d="M7 10h10"/><path d="M12 15v7"/><path d="M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5Z"/>',
+  snowflake:'<path d="M2 12h20"/><path d="M12 2v20"/><path d="m20 16-4-4 4-4"/><path d="m4 8 4 4-4 4"/><path d="m16 4-4 4-4-4"/><path d="m8 20 4-4 4 4"/>',
+  "spray-can":'<path d="M3 3h.01"/><path d="M7 5h.01"/><path d="M11 7h.01"/><path d="M3 7h.01"/><path d="M7 9h.01"/><path d="M3 11h.01"/><rect width="4" height="4" x="15" y="5"/><path d="m19 9 2 2v10c0 .6-.4 1-1 1h-6c-.6 0-1-.4-1-1V11l2-2"/><path d="m13 14 8-2"/><path d="m13 19 8-2"/>',
+  "paw-print":'<circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/><path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/>',
+  "heart-pulse":'<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/>',
+  pill:'<path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/>',
+  baby:'<path d="M9 12h.01"/><path d="M15 12h.01"/><path d="M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"/><path d="M19 6.3a9 9 0 0 1 1.8 3.9 2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1"/>',
+  sofa:'<path d="M20 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v3"/><path d="M2 16a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v1.5a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5V11a2 2 0 0 0-4 0z"/><path d="M4 18v2"/><path d="M20 18v2"/><path d="M12 4v9"/>',
+  lamp:'<path d="M8 2h8l4 10H4L8 2Z"/><path d="M12 12v6"/><path d="M8 22v-2c0-1.1.9-2 2-2h4a2 2 0 0 1 2 2v2H8Z"/>',
+  wrench:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+  gift:'<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5"/>',
+  shirt:'<path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>',
+  car:'<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>',
+  "chevron-right":'<path d="m9 18 6-6-6-6"/>',
+  "chevron-left":'<path d="m15 18-6-6 6-6"/>',
+  package:'<path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"/><path d="m7.5 4.27 9 5.15"/>'
+};
+const ICONS = [["carrot","Carrot"],["apple","Apple"],["leaf","Leaf"],["beef","Meat"],["fish","Fish"],["milk","Milk"],["egg","Egg"],["wheat","Bakery"],["soup","Soup"],["cookie","Cookie"],["cup-soda","Drink"],["coffee","Coffee"],["wine","Wine"],["snowflake","Frozen"],["spray-can","Cleaning"],["paw-print","Pets"],["heart-pulse","Health"],["pill","Pharmacy"],["baby","Baby"],["sofa","Sofa"],["lamp","Lamp"],["house","Home"],["wrench","Tools"],["gift","Gift"],["shirt","Clothing"],["store","Store"],["car","Car"],["package","Box"]];
+const CATS0 = [
+  ["produce","carrot","#4F6B3A","Produce"],["meat","beef","#8A4E32","Meat & Seafood"],["dairy","milk","#35656E","Dairy & Eggs"],["bakery","wheat","#7A6234","Bakery & Bread"],
+  ["pantry","soup","#5E4A3A","Pantry & Dry Goods"],["snacks","cup-soda","#6E4A62","Snacks & Drinks"],["frozen","snowflake","#4F5675","Frozen"],["household","spray-can","#6E6A34","Household & Cleaning"],
+  ["personal","heart-pulse","#874458","Personal Care & Pharmacy"],["home","sofa","#85574A","Home & Errands"],["errands","car","#4E5E63","Errands"],["other","package","#5E5A55","Other"]
+].map(([id,icon,color,name])=>({id,icon,color,name}));
+const ICON_OK = new Set(ICONS.map(i=>i[0]));
+function fixCats(st){ // older saves used emoji icons; move them to Lucide icons and Forest colours
+  if(st.categories && !st.categories.some(c=>c.id==="errands")){ const o=st.categories.findIndex(c=>c.id==="other"); st.categories.splice(o<0?st.categories.length:o,0,{id:"errands",icon:"car",color:"#4E5E63",name:"Errands"}); }
+  (st.categories||[]).forEach((c,i)=>{ const d=CATS0.find(x=>x.id===c.id);
+    if(!ICON_OK.has(c.icon)) c.icon = d? d.icon : "package";
+    if(!/^#[0-9a-f]{6}$/i.test(c.color||"")) c.color = d? d.color : FOREST[i%FOREST.length][1]; });
+  return st; }
+const ic = (name, extra="") => '<i data-lucide="'+name+'"'+extra+'></i>';
+const ctile = (c, sm) => '<span class="ctile'+(sm?" sm":"")+'" style="background:'+c.color+'">'+ic(c.icon)+'</span>';
+
+// section: [label, typical store order, words that appear on aisle signs]
+const SECTIONS = {
+  produce:["Produce",1,"produce fruit vegetable salad"], bakery:["Bakery",2,"bakery bread bagel"], deli:["Deli",3,"deli"],
+  meat:["Meat & Seafood",4,"meat seafood fish poultry"], breakfast:["Breakfast & Coffee",6,"cereal breakfast coffee tea"],
+  pasta:["Pasta, Rice & Sauces",7,"pasta rice sauce noodle"], canned:["Canned & Soup",8,"canned soup bean"],
+  pantry:["Center Aisles",8.5,"grocery"], intl:["International",9,"international asian mexican world ethnic"],
+  condiments:["Condiments & Spreads",10,"condiment spread peanut jam dressing pickle oil"], baking:["Baking & Spices",11,"baking spice flour sugar"],
+  snacks:["Snacks",12,"snack chip cracker candy cookie nut"], drinks:["Drinks",13,"beverage drink juice water pop soda"],
+  dairy:["Dairy & Eggs",14,"dairy milk egg cheese yogurt"], frozen:["Frozen",15,"frozen ice cream"],
+  paper:["Paper & Cleaning",16,"paper cleaning laundry household"], pets:["Pets",17,"pet dog cat"],
+  health:["Health & Beauty",18,"health beauty pharmacy personal shampoo"], baby:["Baby",19,"baby diaper"],
+  hardware:["Household Essentials",20,"battery hardware light bulb storage"], home:["Home & Decor",21,"home decor kitchen bedding"], errands:["Errands",23,""],
+  other:["Other",22,""]
+};
+const CAT_SEC = {errands:"errands",produce:"produce",meat:"meat",dairy:"dairy",bakery:"bakery",pantry:"pantry",snacks:"snacks",frozen:"frozen",household:"paper",personal:"health",home:"home"};
+const DICT_SRC = `
+produce|produce|apple,banana,orange,lemon,lime,grape,strawberry,blueberry,raspberry,blackberry,cherry,peach,pear,plum,mango,pineapple,watermelon,cantaloupe,melon,kiwi,avocado,tomato,potato,sweet potato,yam,onion,green onion,red onion,shallot,garlic,ginger,carrot,baby carrot,celery,cucumber,lettuce,romaine,iceberg,spinach,kale,arugula,cabbage,broccoli,cauliflower,zucchini,squash,pumpkin,pepper,bell pepper,red pepper,green pepper,jalapeno,mushroom,corn,pea,snap pea,green bean,bean sprout,asparagus,beet,radish,turnip,parsnip,leek,eggplant,herb,cilantro,parsley,basil,mint,dill,salad,salad kit,coleslaw,berry,grapefruit,clementine,mandarin,cranberry,fig,bok choy,brussels sprout,fruit,veggie,vegetable,lemon grass,chive
+bakery|bakery|bread,white bread,brown bread,bun,roll,bagel,baguette,croissant,muffin,tortilla,wrap,pita,naan,english muffin,cake,pie,donut,doughnut,cookie,hamburger bun,hot dog bun,sourdough,rye,cinnamon roll,danish,flatbread,loaf,brioche
+deli|meat|ham,salami,pepperoni,deli meat,sliced turkey,prosciutto,rotisserie chicken,hummus,cold cut,bologna
+meat|meat|chicken,beef,ground beef,steak,pork,pork chop,bacon,sausage,hot dog,turkey,lamb,rib,roast,salmon,fish,shrimp,prawn,cod,tilapia,haddock,crab,lobster,scallop,meatball,wing,chicken wing,drumstick,thigh,chicken thigh,chicken breast,ground turkey,ground pork,veal,burger,burger patty,patty,mussel,tuna steak
+breakfast|pantry|cereal,oatmeal,oat,granola,pancake mix,syrup,maple syrup,coffee,coffee bean,ground coffee,tea,k-cup,pop tart,breakfast bar,honey,instant coffee
+pasta|pantry|pasta,spaghetti,penne,macaroni,fusilli,rigatoni,linguine,noodle,egg noodle,lasagna,spaghetti sauce,pasta sauce,tomato sauce,marinara,alfredo,alfredo sauce,pesto,rice,brown rice,jasmine rice,basmati,quinoa,couscous,kraft dinner,kd,mac and cheese,ramen,instant noodle,orzo
+canned|pantry|soup,broth,stock,chicken broth,canned,bean,baked bean,black bean,kidney bean,chickpea,lentil,diced tomato,crushed tomato,tomato paste,tuna,canned tuna,chili,coconut milk,canned fruit,canned corn,evaporated milk,condensed milk
+intl|pantry|soy sauce,teriyaki,curry,curry paste,salsa,taco,taco shell,taco seasoning,taco kit,sriracha,hot sauce,fish sauce,hoisin,oyster sauce,rice noodle,kimchi,tortilla chip,refried bean,enchilada sauce,ramen noodle,sesame oil,miso
+condiments|pantry|jam,jelly,peanut butter,nutella,ketchup,mustard,mayo,mayonnaise,relish,pickle,olive,salad dressing,dressing,ranch,vinegar,bbq sauce,barbecue sauce,worcestershire,gravy,olive oil,vegetable oil,canola oil,oil,cooking spray,marmalade,almond butter
+baking|pantry|flour,sugar,brown sugar,icing sugar,baking soda,baking powder,yeast,vanilla,chocolate chip,cocoa,cake mix,brownie mix,spice,salt,black pepper,cinnamon,paprika,oregano,cumin,seasoning,cornstarch,sprinkle,food coloring,breadcrumb,panko,shortening
+snacks|snacks|chip,potato chip,crisp,popcorn,pretzel,cracker,goldfish,nut,almond,peanut,cashew,pistachio,trail mix,granola bar,chocolate,chocolate bar,candy,gum,dip,jerky,fruit snack,rice cake,dorito,cheezie,ruffle,pringle,snack
+drinks|snacks|water,bottled water,sparkling water,juice,orange juice,apple juice,pop,soda,coke,pepsi,ginger ale,iced tea,lemonade,gatorade,energy drink,kombucha,beer,wine,club soda,sports drink,coconut water
+dairy|dairy|milk,chocolate milk,almond milk,oat milk,soy milk,cream,whipping cream,half and half,coffee cream,creamer,coffee creamer,sour cream,yogurt,greek yogurt,yogourt,butter,margarine,egg,cheese,cheddar,mozzarella,parmesan,feta,brie,cream cheese,cottage cheese,string cheese,shredded cheese,sliced cheese,kefir,tofu,whipped cream
+frozen|frozen|ice cream,popsicle,frozen pizza,pizza,fries,french fry,frozen vegetable,frozen fruit,frozen berry,waffle,eggo,perogy,perogie,pierogi,dumpling,frozen dinner,ice,chicken nugget,nugget,fish stick,frozen pea,frozen corn,hash brown
+paper|household|toilet paper,tp,paper towel,tissue,kleenex,napkin,garbage bag,trash bag,bin liner,ziploc,zip bag,sandwich bag,freezer bag,plastic wrap,saran wrap,foil,aluminum foil,tin foil,parchment,parchment paper,dish soap,dishwasher detergent,dishwasher pod,detergent,laundry detergent,laundry,fabric softener,dryer sheet,bleach,cleaner,all purpose cleaner,lysol,windex,sponge,scrub,wipe,disinfectant,disinfecting wipe,mop,broom,air freshener,swiffer,rubber glove,paper plate,cup
+pets|household|dog food,cat food,cat litter,litter,dog treat,cat treat,pet food,kibble,bird seed,poop bag
+health|personal|shampoo,conditioner,body wash,soap,bar soap,hand soap,toothpaste,toothbrush,floss,mouthwash,deodorant,razor,shaving cream,shave gel,shaving gel,aftershave,lotion,sunscreen,lip balm,chapstick,tampon,pad,tylenol,advil,ibuprofen,acetaminophen,vitamin,multivitamin,medicine,bandaid,band-aid,bandage,cotton swab,q-tip,cotton ball,makeup,hair gel,hairspray,contact solution,cough syrup,cough drop,allergy pill,reactine,face wash,moisturizer,nail polish,hair tie
+baby|personal|diaper,baby wipe,formula,baby food
+hardware|household|battery,aa battery,aaa battery,light bulb,lightbulb,bulb,container,tupperware,food container,extension cord,tape,duct tape,glue,zip tie,candle,lighter,match,charger,phone charger,storage bag
+errands|errands|gas,get gas,fill up,fuel,car wash,wash car,oil change,tire,tire change,tire swap,post office,mail,mail package,parcel,package pickup,bank,atm,deposit,dry cleaning,dry cleaner,return,pick up,drop off,haircut,bottle depot,bottle return,recycling,registry,license,licence,plate sticker,registration,prescription,pharmacy pickup,vet,library,dump,landfill,car service,detailing,key cut,printing,photo print,appointment
+home|home|rug,area rug,bath mat,doormat,towel,bath towel,hand towel,hanger,pillow,blanket,bed sheet,bedding,duvet,curtain,shelf,basket,storage bin,lamp,picture frame,plant pot,vacuum,utensil,frying pan,pot,mug,plate,bowl,cutlery,cutting board,knife,spatula,laundry basket,shower curtain,throw pillow,furniture,drill,screw,paint
+`;
+function sing(w){ if(w.length<=3) return w;
+  if(/ies$/.test(w)) return w.slice(0,-3)+"y";
+  if(/(oes|ches|shes|sses|xes)$/.test(w)) return w.slice(0,-2);
+  if(/s$/.test(w) && !/(ss|us|is)$/.test(w)) return w.slice(0,-1);
+  return w; }
+function norm(s){ return String(s||"").toLowerCase().replace(/[’']/g,"").replace(/[^a-z0-9& -]+/g," ").split(/\s+/).filter(Boolean).map(sing).join(" ").trim(); }
+const DICT = new Map();
+DICT_SRC.trim().split("\n").forEach(line=>{ const [sec,cat,list]=line.split("|"); list.split(",").forEach(k=>{ const n=norm(k); if(n) DICT.set(n,{sec,cat}); }); });
+
+function lookup(key){
+  const w = key.split(" ");
+  if(DICT.has(key)) return DICT.get(key);
+  if(w.includes("frozen")) return {sec:"frozen",cat:"frozen"};
+  if(w.includes("canned")||w.includes("can")&&w.length>1) return {sec:"canned",cat:"pantry"};
+  for(let n=Math.min(3,w.length);n>=1;n--){
+    for(let i=w.length-n;i>=0;i--){ const g=w.slice(i,i+n).join(" "); if(DICT.has(g)) return DICT.get(g); }
+  }
+  return null;
+}
+
+/* ---------- Text parsing ---------- */
+const UNITS = "kg|g|lb|lbs|oz|l|ml|litre|liter|litres|liters|dozen|doz|pack|packs|pk|bag|bags|box|boxes|can|cans|bottle|bottles|bunch|bunches|jar|jars|loaf|loaves|carton|cartons|head|heads";
+function splitItems(text){
+  const out=[]; let cur="", depth=0;
+  for(const ch of String(text)){
+    if(ch==="("||ch==="[") depth++; if(ch===")"||ch==="]") depth=Math.max(0,depth-1);
+    if((ch===","||ch==="\n"||ch===";")&&depth===0){ out.push(cur); cur=""; } else cur+=ch;
+  }
+  out.push(cur);
+  return out.map(s=>s.trim()).filter(Boolean);
+}
+function isHeaderLine(s){
+  const t=s.trim();
+  if(!t) return true;
+  if(/^\p{Extended_Pictographic}/u.test(t)) return true;
+  if(/:$/.test(t)) return true;
+  if(/^(grocery list|groceries|shopping list|list|to buy)$/i.test(t)) return true;
+  return false;
+}
+function parseItem(raw){
+  let s=raw.replace(/^[-*•☐☑✓✔︎•\s]+/,"").replace(/^\[\s?[xX ]?\s?\]\s*/,"").trim();
+  let note="";
+  const pm=s.match(/\(([^)]*)\)/); if(pm){ note=pm[1].trim(); s=s.replace(pm[0]," ").trim(); }
+  const dm=s.match(/\s[-–—]\s(.+)$/); if(dm){ note=[note,dm[1].trim()].filter(Boolean).join(", "); s=s.slice(0,dm.index).trim(); }
+  let qty="";
+  let m;
+  if((m=s.match(new RegExp("^(\\d+(?:[.,]\\d+)?)\\s*("+UNITS+")\\b\\.?\\s*(?:of\\s+)?(.+)$","i")))){ qty=m[1]+" "+m[2].toLowerCase(); s=m[3]; }
+  else if((m=s.match(/^(\d+(?:[.,]\d+)?)\s*[x×]?\s+(.+)$/i))||(m=s.match(/^(\d+)\s*[x×](.+)$/i))){ qty=m[1]; s=m[2]; }
+  else if((m=s.match(/^(.+?)\s*[x×]\s*(\d+)$/i))){ qty=m[2]; s=m[1]; }
+  else if((m=s.match(new RegExp("^(.+?)\\s+(\\d+(?:[.,]\\d+)?)\\s*("+UNITS+")$","i")))){ qty=m[2]+" "+m[3].toLowerCase(); s=m[1]; }
+  s=s.replace(/\s+/g," ").trim();
+  if(!s) return null;
+  const name=s.charAt(0).toUpperCase()+s.slice(1);
+  return {name, qty, note, key:norm(s)};
+}
+function bumpQty(q){
+  if(!q) return "2";
+  const m=String(q).match(/^(\d+(?:\.\d+)?)(.*)$/);
+  return m ? (Math.round((parseFloat(m[1])+1)*100)/100)+m[2] : q;
+}
+
+/* ---------- State ---------- */
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const S = { state:null, items:{}, trips:{} };
+let db=null, sample=null, downloads=null;
+const PREVIEW=false;
+const queue = {};                       // path -> body | null (delete)
+let syncState = "local", flushing=false, retryTimer=null;
+const ui = { tab:"list", listMode:"cat", shopMode:"aisle", search:"", open:{}, pick:{} };
+
+function defaultState(){
+  return { categories:CATS0.map(c=>({...c})), stores:[{id:"rcss",name:"Real Canadian Superstore",aisles:"",secOrder:{},order:{}}],
+    lastStoreId:"rcss", catOverrides:{}, aisleOverrides:{}, dismissed:{}, favorites:{}, v:1 };
+}
+function lsGet(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+function saveLocal(){ lsSet("gp.cache",S); lsSet("gp.queue",queue); }
+
+function seedPreview(){
+  const now=Date.now(), D=864e5; const st=defaultState(); st.stores.push({id:"hd",name:"Home Depot",aisles:"",secOrder:{},order:{}});
+  st.stores[0].aisles="1: Produce\n5: Pasta, Sauces, Canned tomatoes\n6: Jam, Peanut butter, Condiments\n12: Paper, Cleaning\n14: Dairy, Eggs";
+  S.state=st;
+  const mk=(name,qty,where)=>{ const p=parseItem(name); const c=classify(p.key); return {id:uid(),name:p.name,key:p.key,qty:qty||"",note:"",cat:c.cat,sec:c.sec,where:where||"",inCart:false,skipped:false,addedAt:now}; };
+  ["Lettuce","Sour cream","Jam","Spaghetti sauce","Bananas","Eggs","Toilet paper"].forEach(n=>{ const it=mk(n); S.items[it.id]=it; });
+  const m=mk("Milk","2"); S.items[m.id]=m;
+  [mk("Furnace filter","","hd"),mk("Hooks","2","hd")].forEach(it=>{ S.items[it.id]=it; });
+  ["Get gas","Car wash"].forEach(n=>{ const it=mk(n); S.items[it.id]=it; });
+  [[21,"rcss",142.18,["Milk","Yogurt","Bread"]],[14,"rcss",96.40,["Milk","Yogurt","Coffee"]],[7,"rcss",118.75,["Milk","Yogurt","Bananas"]]].forEach(([d,sid,tot,names])=>{ const id=uid();
+    S.trips[id]={id,at:new Date(now-d*D).toISOString(),storeId:sid,storeName:"Real Canadian Superstore",total:tot,items:names.map(n=>{ const p=parseItem(n),c=classify(p.key); return {key:p.key,name:p.name,qty:"",note:"",cat:c.cat,sec:c.sec}; })}; });
+  [[40,62.10],[26,58.75],[12,64.30]].forEach(([d,tot])=>{ const id=uid(); S.trips[id]={id,at:new Date(now-d*D).toISOString(),kind:"errand",storeId:"",storeName:"Oil change",total:0,items:[{key:"oil change",name:"Oil change",qty:"",note:"",cat:"errands",sec:"errands"}]}; S.trips[id].storeName="Get gas"; S.trips[id].items[0]={key:"get gas",name:"Get gas",qty:"",note:"",cat:"errands",sec:"errands"}; S.trips[id].total=tot; });
+}
+(function loadLocal(){
+  if(PREVIEW && !lsGet("gp.cache")){ seedPreview(); }
+  if(PREVIEW) document.getElementById("pvnote").hidden=false;
+  const c=lsGet("gp.cache"); if(c&&c.state){ S.state=c.state; S.items=c.items||{}; S.trips=c.trips||{}; }
+  const q=lsGet("gp.queue"); if(q) Object.assign(queue,q);
+  if(!S.state) S.state=defaultState(); else fixCats(S.state);
+  const p=lsGet("gp.prefs")||{}; if(p.big) document.documentElement.classList.add("big");
+  if(p.listMode) ui.listMode=p.listMode; if(p.shopMode) ui.shopMode=p.shopMode;
+})();
+
+function write(path, body){ queue[path]= body===null?null:JSON.parse(JSON.stringify(body)); saveLocal(); flush(); }
+const putItem = it => { S.items[it.id]=it; write("items/"+it.id,it); };
+const delItem = id => { delete S.items[id]; write("items/"+id,null); };
+const putTrip = t => { S.trips[t.id]=t; write("trips/"+t.id,t); };
+const delTrip = id => { delete S.trips[id]; write("trips/"+id,null); };
+let stateTimer=null;
+function putState(){ write("app/state",S.state); }
+
+function setSync(kind){
+  syncState=kind;
+  const el=document.getElementById("sync");
+  const txt={local:"Saved on this device",ok:"Saved",busy:"Saving",off:"Offline, will save later"}[kind];
+  el.className="sync "+(kind==="off"?"off":kind==="busy"?"busy":"");
+  el.lastElementChild.textContent=txt;
+}
+function withTimeout(p,ms){ return Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej({code:"timeout"}),ms))]); }
+async function flush(){
+  if(!db){ setSync("local"); return; }
+  if(flushing) return; flushing=true;
+  try{
+    for(;;){
+      const paths=Object.keys(queue); if(!paths.length) break;
+      setSync("busy");
+      const path=paths[0], body=queue[path];
+      try{
+        if(body===null) await withTimeout(db.doc(path).delete(),12000);
+        else await withTimeout(db.doc(path).set(body),12000);
+        if(queue[path]===body) delete queue[path];
+        saveLocal();
+      }catch(e){
+        if(e&&(e.code==="invalid_argument"||e.code==="transform_error")){ delete queue[path]; saveLocal(); continue; }
+        if(e&&e.code==="quota_exceeded") toast("Storage is full. Delete some old trips in History.");
+        setSync("off"); clearTimeout(retryTimer); retryTimer=setTimeout(flush,15000); return;
+      }
+    }
+    setSync("ok");
+  } finally { flushing=false; }
+}
+addEventListener("online",()=>{ clearTimeout(retryTimer); flush(); });
+
+function applyRemote(kind, snap){
+  if(kind==="state"){
+    if("app/state" in queue) return;
+    if(snap.exists){ const d=snap.data(); S.state=fixCats(Object.assign(defaultState(),JSON.parse(JSON.stringify(d)))); }
+  } else {
+    const coll = kind==="items"?S.items:S.trips, prefix=kind+"/";
+    const next={};
+    snap.docs.forEach(d=>{ next[d.id]=JSON.parse(JSON.stringify(d.data())); });
+    for(const p in queue){ if(p.startsWith(prefix)){ const id=p.slice(prefix.length); if(queue[p]===null) delete next[id]; else next[id]=queue[p]; } }
+    if(kind==="items") S.items=next; else S.trips=next;
+  }
+  saveLocal(); render();
+}
+
+/* ---------- Derived helpers ---------- */
+const cats = () => S.state.categories;
+const catById = id => cats().find(c=>c.id===id) || cats().find(c=>c.id==="other") || {id:"other",icon:"package",color:"#5E5A55",name:"Other"};
+const store = (id=S.state.lastStoreId) => S.state.stores.find(s=>s.id===id) || S.state.stores[0];
+const itemsArr = () => Object.values(S.items);
+const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const money = n => "$"+(Number(n)||0).toFixed(2);
+const money0 = n => "$"+Math.round(Number(n)||0).toLocaleString("en-CA");
+const DAY=864e5;
+
+function classify(key){
+  const o=S.state.catOverrides[key];
+  const hit=lookup(key);
+  if(o) return {cat:o.cat, sec: o.sec || (hit&&hit.cat===o.cat?hit.sec:(CAT_SEC[o.cat]||"other"))};
+  if(hit) return hit;
+  // learned from history?
+  const past=Object.values(S.trips).flatMap(t=>t.items).find(i=>i.key===key);
+  if(past) return {cat:past.cat, sec:past.sec||CAT_SEC[past.cat]||"other"};
+  return {cat:"other",sec:"other"};
+}
+function parseAisles(text){
+  return String(text||"").split("\n").map(l=>{ const m=l.match(/^\s*(?:aisle\s*)?([A-Za-z]?\d+[A-Za-z]?)\s*[:\-–.]\s*(.+)$/i); if(!m) return null;
+    const labels=m[2].split(/[,/&]| and /).map(s=>s.trim()).filter(Boolean);
+    return {aisle:m[1].toUpperCase(), labels, phrases:labels.map(norm).filter(Boolean), words:new Set(labels.flatMap(x=>norm(x).split(" ")).filter(w=>w.length>2))}; }).filter(Boolean);
+}
+const aisleCache=new Map();
+function aislesOf(st){ const k=st.id+"|"+st.aisles; if(!aisleCache.has(k)) aisleCache.set(k,parseAisles(st.aisles)); return aisleCache.get(k); }
+function locate(it, st){
+  const ov=(S.state.aisleOverrides[st.id]||{})[it.key];
+  const map=aislesOf(st);
+  if(ov) { const a=map.find(x=>x.aisle===ov); return {aisle:ov, label:a?a.labels.slice(0,2).join(", "):SECTIONS[it.sec||"other"][0], src:"set"}; }
+  if(map.length){
+    const k=" "+it.key+" ";
+    let best=null,score=0;
+    for(const a of map){ for(const ph of a.phrases){ if(k.includes(" "+ph+" ") && ph.length>score){ score=ph.length; best=a; } } }
+    if(!best){ const sw=(SECTIONS[it.sec||"other"]||SECTIONS.other)[2].split(" ").map(sing);
+      for(const a of map){ let s=0; for(const w of sw) if(a.words.has(w)) s++; if(s>score){score=s;best=a;} } }
+    if(best) return {aisle:best.aisle, label:best.labels.slice(0,2).join(", "), src:"map"};
+  }
+  return {aisle:null, label:(SECTIONS[it.sec]||SECTIONS.other)[0], src:"est"};
+}
+function stats(){
+  const by={};
+  Object.values(S.trips).sort((a,b)=>a.at<b.at?-1:1).forEach(t=>t.items.forEach(i=>{
+    const r=by[i.key]||(by[i.key]={key:i.key,name:i.name,cat:i.cat,sec:i.sec,dates:[]});
+    r.name=i.name; r.cat=i.cat; r.sec=i.sec; const d=new Date(t.at).getTime(); if(r.dates[r.dates.length-1]!==d) r.dates.push(d);
+  }));
+  for(const r of Object.values(by)){
+    const g=[]; for(let i=1;i<r.dates.length;i++) g.push((r.dates[i]-r.dates[i-1])/DAY);
+    g.sort((a,b)=>a-b); r.every = g.length? g[Math.floor(g.length/2)] : null;
+    r.last=r.dates[r.dates.length-1]; r.since=(Date.now()-r.last)/DAY; r.count=r.dates.length;
+  }
+  return by;
+}
+function suggestions(){
+  const on=new Set(itemsArr().map(i=>i.key)), st=stats(), now=Date.now();
+  return Object.values(st).filter(r=>r.count>=2 && r.every>=1 && !on.has(r.key) && r.since>=r.every*0.85 &&
+      !(S.state.dismissed[r.key] && (now-S.state.dismissed[r.key])/DAY < Math.max(r.every,3)))
+    .sort((a,b)=>(b.since/b.every)-(a.since/a.every)).slice(0,12);
+}
+const ago = d => d<1?"today":d<2?"yesterday":Math.round(d)+" days ago";
+const every = d => d<1.5?"daily":d<10?"every ~"+Math.round(d)+" days":d<45?"every ~"+Math.round(d/7)+" weeks":"every ~"+Math.round(d/30)+" months";
+
+const isTask = it => it.cat==="errands";
+function scopeItems(stId){ const main=stId===S.state.lastStoreId;
+  return itemsArr().filter(i=>!isTask(i) && (main ? (!i.where||i.where===stId||!S.state.stores.some(s=>s.id===i.where)) : i.where===stId)); }
+function stopsList(){
+  const out=[]; const main=store();
+  const mainItems=scopeItems(main.id);
+  S.state.stores.forEach(s=>{ const its=s.id===main.id?mainItems:scopeItems(s.id); if(its.length) out.push({st:s,items:its}); });
+  return out;
+}
+function multiStop(){ const n=stopsList().length + (itemsArr().some(isTask)?1:0); return n>1; }
+
+/* ---------- Actions ---------- */
+let undoFn=null;
+function addText(text, opts={}){
+  let where="", whereName="";
+  const pm=String(text).match(/^\s*([^:\n,()]{2,40}):\s*(\S[\s\S]*)$/);
+  if(pm && !/\n/.test(text.trim())){
+    const want=norm(pm[1]);
+    let st=S.state.stores.find(s=>{ const n=norm(s.name); return n===want||n.includes(want)||want.includes(n); });
+    if(!st){ st={id:uid(),name:pm[1].trim().replace(/\b\w/g,c=>c.toUpperCase()),aisles:"",secOrder:{},order:{}}; S.state.stores.push(st); putState(); }
+    where=st.id; whereName=st.name; text=pm[2];
+  }
+  const parts=splitItems(text).filter(p=>!isHeaderLine(p)).map(parseItem).filter(Boolean);
+  const added=[]; let dupe=null;
+  for(const p of parts){
+    const ex=itemsArr().find(i=>i.key===p.key && (i.where||"")===where);
+    if(ex){ if(parts.length===1&&!opts.quiet) dupe=ex; else if(!opts.quiet){ dupe=ex; } continue; }
+    const {cat,sec}=classify(p.key);
+    const it={id:uid(),name:p.name,key:p.key,qty:p.qty,note:p.note,cat,sec,where,inCart:false,skipped:false,addedAt:Date.now()};
+    putItem(it); added.push(it);
+  }
+  render();
+  if(dupe && !added.length){ toast(dupe.name+" is already on your list", "Add 1 more", ()=>{ const it={...dupe,qty:bumpQty(dupe.qty)}; putItem(it); render(); toast(it.name+": "+it.qty); }); }
+  else if(added.length){ const ids=added.map(a=>a.id);
+    const msg = (added.length===1 ? "Added "+added[0].name+" to "+(whereName||catById(added[0].cat).name) : "Added "+added.length+" items"+(whereName?" for "+whereName:""))+(dupe?" (skipped duplicates)":"");
+    toast(msg,"Undo",()=>{ ids.forEach(delItem); render(); }); }
+  return added.length;
+}
+function setCategory(it, catId){
+  const prev={...it};
+  const sec = catId===it.cat ? it.sec : ((lookup(it.key)||{}).cat===catId ? lookup(it.key).sec : (CAT_SEC[catId]||"other"));
+  S.state.catOverrides[it.key]={cat:catId, sec}; putState();
+  putItem({...it,cat:catId,sec}); render();
+  toast(it.name+" will go to "+catById(catId).name+" from now on","Undo",()=>{ delete S.state.catOverrides[it.key]; putState(); putItem(prev); render(); });
+}
+function removeItem(it){ delItem(it.id); render(); toast("Removed "+it.name,"Undo",()=>{ putItem(it); render(); }); }
+function plusOne(it){ const prev={...it}; const n={...it,qty:bumpQty(it.qty)}; putItem(n); render(); toast(n.name+": "+n.qty,"Undo",()=>{ putItem(prev); render(); }); }
+function toggleCart(it){
+  const prev={...it};
+  const n={...it,inCart:!it.inCart,skipped:false,pickedAt:!it.inCart?Date.now():null};
+  putItem(n); try{navigator.vibrate&&navigator.vibrate(12);}catch(e){}
+  render();
+  toast(n.inCart? n.name+" in cart" : n.name+" back on the list","Undo",()=>{ putItem(prev); render(); });
+}
+function skipItem(it){
+  const prev={...it}; putItem({...it,skipped:!it.skipped,inCart:false}); render();
+  toast(it.skipped? it.name+" is back on this trip" : "Skipped "+it.name+" for this trip. It stays on your list.","Undo",()=>{ putItem(prev); render(); });
+}
+function doneTask(it){
+  const trip={id:uid(),at:new Date().toISOString(),kind:"errand",storeId:it.where||"",storeName:it.name,total:0,
+    items:[{key:it.key,name:it.name,qty:it.qty,note:it.note,cat:it.cat,sec:it.sec}]};
+  putTrip(trip); delItem(it.id); try{navigator.vibrate&&navigator.vibrate(12);}catch(e){}
+  render();
+  toast(it.name+" done","Undo",()=>{ delTrip(trip.id); putItem(it); render(); },"Add cost",()=>costSheet(trip));
+}
+function costSheet(t){
+  sheet("Cost of "+t.storeName, sh=>{
+    sh.appendChild(el('<label class="f">Amount paid (CAD)<div class="money"><span>$</span><input id="ecost" inputmode="decimal" placeholder="0.00" autocomplete="off"></div></label>'));
+    if(t.total) sh.querySelector("#ecost").value=t.total.toFixed(2);
+    const b=el('<button class="btn wide">Save</button>');
+    b.onclick=()=>{ const v=parseFloat(String(sh.querySelector("#ecost").value).replace(/[$,\s]/g,"")); const cur=S.trips[t.id]||t;
+      putTrip({...cur,total:v>=0?Math.round(v*100)/100:0}); closeSheet(); render(); toast(t.storeName+": "+money(v>=0?v:0)); };
+    sh.appendChild(b); setTimeout(()=>sh.querySelector("#ecost").focus(),80);
+  });
+}
+function learnOrder(st, picked){
+  if(picked.length<2) return;
+  const n=picked.length-1;
+  st.order=st.order||{}; st.secOrder=st.secOrder||{};
+  const secPos={};
+  picked.forEach((it,i)=>{ const pos=i/n;
+    st.order[it.key]= st.order[it.key]==null? pos : st.order[it.key]*0.6+pos*0.4;
+    (secPos[it.sec]=secPos[it.sec]||[]).push(pos); });
+  for(const s in secPos){ const avg=secPos[s].reduce((a,b)=>a+b,0)/secPos[s].length; st.secOrder[s]= st.secOrder[s]==null? avg : st.secOrder[s]*0.6+avg*0.4; }
+}
+function completeTrip({storeId,storeName,total,at}){
+  let st=S.state.stores.find(s=>s.id===storeId);
+  if(!st){ st={id:uid(),name:storeName,aisles:"",secOrder:{},order:{}}; S.state.stores.push(st); }
+  const inCart=scopeItems(ui.stop||S.state.lastStoreId).filter(i=>i.inCart).sort((a,b)=>(a.pickedAt||0)-(b.pickedAt||0));
+  const trip={id:uid(),at,storeId:st.id,storeName:st.name,total:Math.round(total*100)/100,
+    items:inCart.map(i=>({key:i.key,name:i.name,qty:i.qty,note:i.note,cat:i.cat,sec:i.sec}))};
+  learnOrder(st,inCart); if(!ui.stop||ui.stop===S.state.lastStoreId) S.state.lastStoreId=st.id; putState(); ui.stop=null;
+  putTrip(trip);
+  inCart.forEach(i=>delItem(i.id));
+  itemsArr().filter(i=>i.skipped).forEach(i=>putItem({...i,skipped:false}));
+  ui.pick={}; render();
+  toast("Trip saved: "+inCart.length+" items, "+money(trip.total));
+}
+
+/* ---------- UI primitives ---------- */
+let toastTimer=null; const undoStack=[];
+function runUndo(){ const fn=undoStack.pop(); if(!fn) return; fn();
+  if(undoStack.length){ const more=undoStack.pop(); toast("Undone","Undo",more); } else toast("Undone"); }
+function toast(msg, ...acts){
+  const actLabel=acts[0];
+  document.querySelectorAll(".toast").forEach(t=>t.remove());
+  const t=document.createElement("div"); t.className="toast"; t.setAttribute("role","status");
+  t.innerHTML="<span>"+esc(msg)+"</span>";
+  for(let i=0;i+1<acts.length;i+=2){ const label=acts[i], fn=acts[i+1]; const b=document.createElement("button"); b.textContent=label;
+    if(label==="Undo"){ undoStack.push(fn); if(undoStack.length>5) undoStack.shift(); b.onclick=()=>{ t.remove(); runUndo(); }; }
+    else b.onclick=()=>{ t.remove(); fn(); };
+    t.appendChild(b); }
+  document.body.appendChild(t); icons();
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.remove(), actLabel?(acts.length>2?7000:5000):2600);
+}
+function sheet(title, build){
+  closeSheet();
+  const scrim=document.createElement("div"); scrim.className="scrim"; scrim.onclick=closeSheet;
+  const sh=document.createElement("div"); sh.className="sheet wrap"; sh.setAttribute("role","dialog"); sh.setAttribute("aria-label",title);
+  sh.innerHTML='<h3><span>'+esc(title)+'</span><button aria-label="Close">'+ic("x")+'</button></h3>';
+  sh.querySelector("h3 button").onclick=closeSheet;
+  build(sh);
+  document.body.append(scrim,sh); icons();
+  return sh;
+}
+function closeSheet(){ document.querySelectorAll(".scrim,.sheet").forEach(e=>e.remove()); }
+function el(html){ const t=document.createElement("template"); t.innerHTML=html.trim(); return t.content.firstElementChild; }
+
+function swipeRow(rowEl, {left, right, leftLabel, rightLabel, tap, long}){
+  const wrap=document.createElement("div"); wrap.className="swipe";
+  const under=el('<div class="under"><span class="l">'+esc(rightLabel||"")+'</span><span class="r">'+esc(leftLabel||"")+'</span></div>');
+  wrap.append(under,rowEl);
+  let x0=null,y0=0,dx=0,locked=false,moved=false,pid=null;
+  let lt=null, longed=false;
+  rowEl.addEventListener("pointerdown",e=>{ if(e.button>0) return; x0=e.clientX; y0=e.clientY; dx=0; locked=false; moved=false; longed=false; pid=e.pointerId;
+    clearTimeout(lt); if(long && !e.target.closest("[data-stop]")) lt=setTimeout(()=>{ if(!moved){ longed=true; x0=null; try{navigator.vibrate&&navigator.vibrate(20);}catch(_){} long(); } },500); });
+  rowEl.addEventListener("contextmenu",e=>{ if(long) e.preventDefault(); });
+  rowEl.addEventListener("pointermove",e=>{ if(x0===null||e.pointerId!==pid) return;
+    const ddx=e.clientX-x0, ddy=e.clientY-y0;
+    if(Math.abs(ddx)>8||Math.abs(ddy)>8) clearTimeout(lt);
+    if(!locked){ if(Math.abs(ddy)>10&&Math.abs(ddy)>Math.abs(ddx)){ x0=null; return; } if(Math.abs(ddx)>10){ locked=true; try{rowEl.setPointerCapture(pid);}catch(_){} } }
+    if(locked){ moved=true; dx=ddx; if((dx>0&&!right)||(dx<0&&!left)) dx=dx/4; rowEl.style.transform="translateX("+dx+"px)"; }
+  });
+  const end=e=>{ clearTimeout(lt); if(x0===null) return; x0=null; rowEl.style.transition="transform .18s"; rowEl.style.transform="";
+    setTimeout(()=>rowEl.style.transition="",200);
+    if(moved){ if(dx<-90&&left) left(); else if(dx>90&&right) right(); }
+  };
+  rowEl.addEventListener("pointerup",end); rowEl.addEventListener("pointercancel",()=>{x0=null;rowEl.style.transform="";});
+  rowEl.addEventListener("click",e=>{ if(longed){ e.preventDefault(); longed=false; return; } if(moved){ e.preventDefault(); e.stopPropagation(); moved=false; return; } if(tap && !e.target.closest("[data-stop]")) tap(e); });
+  return wrap;
+}
+
+/* ---------- Views ---------- */
+const view=document.getElementById("view");
+function render(){
+  const t=ui.tab;
+  document.querySelectorAll("nav.tabs a").forEach(a=>{ if(a.dataset.tab===t) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
+  document.getElementById("addbar").hidden = t!=="list";
+  const sb=document.getElementById("searchbtn"); sb.hidden = t!=="list" || itemsArr().length<6;
+  document.getElementById("search").hidden = sb.hidden || !ui.searchOpen;
+  sb.setAttribute("aria-pressed", !!ui.searchOpen);
+  const onStops = t==="shop" && !ui.stop && multiStop();
+  const nCart=onStops?0:scopeItems(ui.stop||S.state.lastStoreId).filter(i=>i.inCart).length;
+  document.getElementById("shopbar").hidden = t!=="shop" || nCart===0;
+  document.getElementById("completebtn").textContent="Complete trip · "+nCart+(nCart===1?" item":" items");
+  document.getElementById("title").textContent = {list:"Errands",shop:onStops?"Today's run":store(ui.stop||S.state.lastStoreId).name,history:"History",setup:"Settings"}[t];
+  const y=scrollY;
+  view.replaceChildren(({list:viewList,shop:viewShop,history:viewHistory,setup:viewSetup})[t]());
+  scrollTo(0,y);
+  renderRecent();
+  icons();
+  wake(t==="shop");
+}
+function icons(){ document.querySelectorAll("i[data-lucide]").forEach(i=>{ const n=i.getAttribute("data-lucide");
+  i.outerHTML='<svg class="lucide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(SVG[n]||SVG.package)+'</svg>'; }); }
+
+function itemRowList(it){
+  const c=catById(it.cat);
+  const st=it.where? S.state.stores.find(s=>s.id===it.where):null;
+  const row=el('<div class="row"><button class="catbtn dot" data-stop aria-label="Change category, now '+esc(c.name)+'"><i style="background:'+c.color+'"></i></button>'+
+    '<div class="main"><div class="name">'+(it.qty?'<span class="qty">'+esc(it.qty)+'</span>':'')+esc(it.name)+'</div>'+
+    ((it.note||st)?'<div class="sub">'+esc(it.note)+(st?' <span class="chip">'+ic("store")+esc(st.name)+'</span>':'')+'</div>':'')+'</div></div>');
+  row.querySelector(".catbtn").onclick=e=>{ e.stopPropagation(); pickCategory(it); };
+  return swipeRow(row,{left:()=>removeItem(it), right:()=>plusOne(it), leftLabel:"Delete", rightLabel:"+1", tap:()=>editItem(it)});
+}
+function viewList(){
+  const v=el('<div class="view"></div>');
+  const all=itemsArr(), q=norm(ui.search);
+  const list=q? all.filter(i=>i.key.includes(q)||norm(i.note).includes(q)) : all;
+  // suggestions + favorites
+  const sg=suggestions();
+  if(sg.length && !q){
+    const s=el('<section class="strip"><h2>Due again</h2><div class="chips"></div></section>');
+    sg.forEach(r=>{ const c=el('<div class="sugg"><button><span>'+esc(r.name)+'</span><small>'+every(r.every)+' · last '+ago(r.since)+'</small></button><button class="x" aria-label="Dismiss '+esc(r.name)+'">'+ic("x")+'</button></div>');
+      c.firstElementChild.onclick=()=>addText(r.name);
+      c.lastElementChild.onclick=()=>{ S.state.dismissed[r.key]=Date.now(); putState(); render(); toast("Hidden until you'd usually need "+r.name+" again","Undo",()=>{ delete S.state.dismissed[r.key]; putState(); render(); }); };
+      s.querySelector(".chips").appendChild(c); });
+    v.appendChild(s);
+  }
+  const on=new Set(all.map(i=>i.key));
+  const favs=Object.entries(S.state.favorites).filter(([k])=>!on.has(k));
+  if(favs.length && !q){
+    const s=el('<section class="strip"><h2>Favorites</h2><div class="chips"></div></section>');
+    favs.forEach(([k,f])=>{ const b=el('<button class="fav">'+ic("star")+esc(f.name)+'</button>'); b.onclick=()=>addText(f.name); s.querySelector(".chips").appendChild(b); });
+    v.appendChild(s);
+  }
+  if(!all.length){
+    v.appendChild(el('<div class="empty"><b>Your list is empty</b><span>Type groceries or errands in the bar below, like "milk, get gas, car wash". Start with a store name and a colon to plan a store run: "home depot: furnace filter, 2 hooks".</span><span class="hint">Coming from Notepad? Settings has Import, for pasted text.</span></div>'));
+    return v;
+  }
+  if(all.length>3){
+    const seg=el('<div class="seg" role="group" aria-label="Group by"><button data-m="cat">By category</button><button data-m="stop">By stop</button></div>');
+    seg.querySelectorAll("button").forEach(b=>{ b.setAttribute("aria-pressed",ui.listMode===b.dataset.m); b.onclick=()=>{ ui.listMode=b.dataset.m; prefs({listMode:ui.listMode}); render(); }; });
+    v.appendChild(seg);
+  }
+  if(ui.listMode==="stop"){
+    const groups=[]; const main=store();
+    S.state.stores.forEach(st=>{ const ids=new Set(scopeItems(st.id).map(i=>i.id)); const its=list.filter(i=>ids.has(i.id)); if(its.length) groups.push([st.name,its,{icon:"store",color:"#2F6650"}]); });
+    const tasks=list.filter(isTask); if(tasks.length) groups.push(["Errands",tasks,catById("errands")]);
+    groups.forEach(([t,its,c])=>v.appendChild(groupEl(t,null,its.length,its.sort((a,b)=>a.addedAt-b.addedAt).map(itemRowList),null,c)));
+  }
+  else cats().forEach(c=>{
+    const its=list.filter(i=>(catById(i.cat).id)===c.id).sort((a,b)=>a.addedAt-b.addedAt);
+    if(its.length) v.appendChild(groupEl(c.name,null,its.length,its.map(itemRowList),null,c));
+  });
+  if(q && !list.length) v.appendChild(el('<div class="empty"><span>Nothing on your list matches "'+esc(ui.search)+'".</span></div>'));
+  v.appendChild(el('<p class="hint">Swipe right for +1, swipe left to delete. Tap an item to edit it.</p>'));
+  return v;
+}
+function groupEl(title, tag, n, rows, extra, cat){
+  const g=el('<section class="group"><div class="ghead">'+(cat?ctile(cat,true):'')+'<span class="t"></span>'+(tag?'<span class="tag '+(tag==="~"?"est":"")+'">'+(tag==="~"?"estimate":esc(tag))+'</span>':'')+'<span class="n">'+n+'</span></div><div class="rows"></div></section>');
+  g.querySelector(".ghead .t").textContent=title;
+  const r=g.querySelector(".rows"); rows.forEach(x=>r.appendChild(x)); if(extra) r.appendChild(extra);
+  return g;
+}
+
+function shopGroups(items, st, byCat){
+  const groups=new Map();
+  for(const it of items){
+    let key,title,tag,sortv;
+    if(byCat){ const c=catById(it.cat); key="c:"+c.id; title=c.name; tag=null; sortv=cats().indexOf(c); }
+    else {
+      const loc=locate(it,st);
+      if(loc.aisle){ key="a:"+loc.aisle; title="Aisle "+loc.aisle+(loc.label?" · "+loc.label:""); tag=null; }
+      else { key="s:"+(it.sec||"other"); title=loc.label; tag="~"; }
+      const so=(st.secOrder||{})[it.sec];
+      const num=loc.aisle? parseInt(loc.aisle.replace(/\D/g,""),10):NaN;
+      sortv = so!=null ? so : !isNaN(num) ? 0.12+num/100 : ((SECTIONS[it.sec]||SECTIONS.other)[1])/23;
+    }
+    if(!groups.has(key)) groups.set(key,{key,title,tag,items:[],sv:[],cat:catById(it.cat)});
+    const g=groups.get(key); g.items.push(it); g.sv.push(sortv);
+  }
+  const out=[...groups.values()];
+  out.forEach(g=>{ g.sort=g.sv.reduce((a,b)=>a+b,0)/g.sv.length;
+    const cnt={}; g.items.forEach(i=>{ cnt[i.cat]=(cnt[i.cat]||0)+1; }); g.cat=catById(Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0]);
+    g.items.sort((a,b)=>((st.order||{})[a.key]??0.5)-((st.order||{})[b.key]??0.5)||a.name.localeCompare(b.name)); });
+  return out.sort((a,b)=>a.sort-b.sort);
+}
+function viewStops(){
+  const v=el('<div class="view shop"></div>');
+  const stops=stopsList();
+  if(stops.length){
+    const card=el('<div class="rows"></div>');
+    stops.forEach(({st,items})=>{ const act=items.filter(i=>!i.skipped), done=act.filter(i=>i.inCart).length, sk=items.length-act.length;
+      const b=el('<button class="trip">'+ctile({icon:"store",color:"#2F6650"})+'<span style="flex:1;min-width:0"><b>'+esc(st.name)+'</b><br><span class="muted">'+(done?done+' of '+act.length+' in cart':act.length+' item'+(act.length===1?'':'s'))+(sk?' · '+sk+' not found':'')+'</span></span>'+ic("chevron-right")+'</button>');
+      b.onclick=()=>{ ui.stop=st.id; render(); scrollTo(0,0); }; card.appendChild(b); });
+    v.appendChild(el('<section class="strip"><h2>Stores</h2></section>')).appendChild(card);
+  }
+  const tasks=itemsArr().filter(isTask).sort((a,b)=>a.addedAt-b.addedAt);
+  if(tasks.length) v.appendChild(groupEl("Errands",null,tasks.length,tasks.map(taskRow),null,catById("errands")));
+  v.appendChild(el('<p class="hint">Tap a store to shop it. Tap an errand when it\'s done, then add what it cost if you like.</p>'));
+  return v;
+}
+function taskRow(it){
+  const st=it.where? S.state.stores.find(s=>s.id===it.where):null;
+  const row=el('<div class="row" role="button" tabindex="0"><span class="box"></span><div class="main"><div class="name">'+(it.qty?'<span class="qty">'+esc(it.qty)+'</span>':'')+esc(it.name)+'</div>'+
+    ((it.note||st)?'<div class="sub">'+esc(it.note)+(st?' <span class="chip">'+ic("store")+esc(st.name)+'</span>':'')+'</div>':'')+'</div></div>');
+  row.onkeydown=e=>{ if(e.key===" "||e.key==="Enter"){ e.preventDefault(); doneTask(it); } };
+  return swipeRow(row,{tap:()=>doneTask(it)});
+}
+function viewShop(){
+  if(!ui.stop && multiStop()) return viewStops();
+  const v=el('<div class="view shop"></div>');
+  const st=store(ui.stop||S.state.lastStoreId);
+  const all=itemsArr().filter(i=>!isTask(i));
+  const here=scopeItems(st.id);
+  const hereIds=new Set(here.map(i=>i.id));
+  const elsewhere=all.filter(i=>!hereIds.has(i.id));
+  if(multiStop()){ const back=el('<button class="link" style="display:flex;align-items:center;gap:4px;align-self:flex-start">'+ic("chevron-left")+'All stops</button>'); back.onclick=()=>{ ui.stop=null; render(); scrollTo(0,0); }; v.appendChild(back); }
+  const active=here.filter(i=>!i.skipped);
+  const done=active.filter(i=>i.inCart).length;
+  const top=el('<div class="progress"><div class="ptext"><span><strong>'+done+' of '+active.length+'</strong> in cart</span><button class="link" id="chstore">Change store</button></div><div class="pbar"><b style="width:'+(active.length?done/active.length*100:0)+'%"></b></div></div>');
+  top.querySelector("#chstore").onclick=pickStore;
+  if(ui.stop && ui.stop!==S.state.lastStoreId) top.querySelector("#chstore").hidden=true;
+  v.appendChild(top);
+  if(!here.length){ v.appendChild(el('<div class="empty"><b>Nothing to shop for here</b><span>Add items on the List tab first.</span></div>')); return v; }
+  const seg=el('<div class="seg" role="group" aria-label="Sort by"><button data-m="aisle">By aisle</button><button data-m="cat">By category</button></div>');
+  seg.querySelectorAll("button").forEach(b=>{ b.setAttribute("aria-pressed",ui.shopMode===b.dataset.m); b.onclick=()=>{ ui.shopMode=b.dataset.m; prefs({shopMode:ui.shopMode}); render(); }; });
+  v.appendChild(seg);
+  const gs=shopGroups(active, st, ui.shopMode==="cat");
+  const open=gs.filter(g=>g.items.some(i=>!i.inCart)), fin=gs.filter(g=>g.items.every(i=>i.inCart));
+  open.concat(fin).forEach(g=>{
+    const todo=g.items.filter(i=>!i.inCart), cart=g.items.filter(i=>i.inCart);
+    const k="g:"+g.key, isOpen=!!ui.open[k];
+    let extra=null;
+    if(cart.length){ extra=el('<button class="fold"><span>In cart ('+cart.length+')</span><span>'+(isOpen?"Hide":"Show")+'</span></button>'); extra.onclick=()=>{ ui.open[k]=!isOpen; render(); }; }
+    const rows=todo.map(i=>shopRow(i,st)).concat(isOpen?cart.map(i=>shopRow(i,st)):[]);
+    const ge=groupEl(g.title,g.tag,todo.length?todo.length+" left":"done",rows,extra,g.cat);
+    if(!todo.length) ge.classList.add("done");
+    if(!todo.length && !rows.length) ge.querySelector(".rows").firstElementChild.style.borderTop="0";
+    v.appendChild(ge);
+  });
+  const inCart=active.filter(i=>i.inCart).sort((a,b)=>(b.pickedAt||0)-(a.pickedAt||0));
+  if(inCart.length){
+    const hide=!!ui.open["cart-hide"];
+    const b=el('<button class="fold"><span>'+(hide?"Show":"Hide")+' cart items</span><span>'+inCart.length+'</span></button>');
+    b.onclick=()=>{ ui.open["cart-hide"]=!hide; render(); };
+    const ge=groupEl("In cart",null,inCart.length,hide?[]:inCart.map(i=>shopRow(i,st)),b,{icon:"shopping-cart",color:"#2F6650"});
+    ge.id="cart"; if(hide) b.style.borderTop="0";
+    v.appendChild(ge);
+  }
+  const sk=here.filter(i=>i.skipped);
+  if(sk.length) v.appendChild(groupEl("Didn't find",null,sk.length,sk.map(i=>shopRow(i,st))));
+  if(elsewhere.length){
+    const k="g:else", isOpen=!!ui.open[k];
+    const b=el('<button class="fold"><span>Other stores ('+elsewhere.length+')</span><span>'+(isOpen?"Hide":"Show")+'</span></button>');
+    b.style.borderTop="0"; b.onclick=()=>{ ui.open[k]=!isOpen; render(); };
+    v.appendChild(groupEl("Other stores",null,elsewhere.length,isOpen?elsewhere.map(i=>shopRow(i,st)):[],b));
+  }
+  v.appendChild(el('<p class="hint">Tap to put an item in your cart. Press and hold an item for Didn\'t find, Set aisle and Edit.</p>'));
+  return v;
+}
+function shopRow(it, st){
+  const loc=locate(it,st);
+  const tagTxt=loc.aisle?"Aisle "+loc.aisle:"Set aisle";
+  const other=it.where&&it.where!==st.id? S.state.stores.find(s=>s.id===it.where):null;
+  const row=el('<div class="row'+(it.inCart?" incart":"")+'" role="checkbox" aria-checked="'+it.inCart+'" tabindex="0"><span class="box"></span>'+
+    '<div class="main"><div class="name">'+(it.qty?'<span class="qty">'+esc(it.qty)+'</span>':'')+esc(it.name)+'</div>'+
+    ((it.note||other)?'<div class="sub">'+esc(it.note)+(other?' <span class="chip">'+ic("store")+esc(other.name)+'</span>':'')+'</div>':'')+'</div>'+
+    ((ui.shopMode==="aisle"&&loc.aisle)?'':'<button class="aisle'+(loc.src==="est"?" est":"")+'" data-stop aria-label="Set aisle for '+esc(it.name)+'">'+esc(tagTxt)+'</button>')+'</div>');
+  const ab=row.querySelector(".aisle"); if(ab) ab.onclick=e=>{ e.stopPropagation(); setAisle(it,st); };
+  row.onkeydown=e=>{ if(e.key===" "||e.key==="Enter"){ e.preventDefault(); it.skipped?skipItem(it):toggleCart(it); } };
+  return swipeRow(row,{left:()=>skipItem(it), leftLabel:it.skipped?"Back on trip":"Didn't find", tap:()=> it.skipped?skipItem(it):toggleCart(it), long:()=>rowActions(it,st)});
+}
+function rowActions(it, st){
+  sheet(it.name, sh=>{
+    const acts=[[it.skipped?"Back on this trip":"Didn't find it",()=>skipItem(it)],["Set aisle at "+st.name,()=>setAisle(it,st)],["Edit item",()=>editItem(it)]];
+    acts.forEach(([l,fn])=>{ const b=el('<button class="btn ghost wide">'+esc(l)+'</button>'); b.onclick=()=>{ closeSheet(); fn(); }; sh.appendChild(b); });
+  });
+}
+
+function viewHistory(){
+  const v=el('<div class="view"></div>');
+  const trips=Object.values(S.trips).sort((a,b)=>a.at<b.at?1:-1);
+  if(!trips.length){ v.appendChild(el('<div class="empty"><b>No trips yet</b><span>When you finish shopping, tap Complete trip on the Run tab. Finished errands land here too, with their cost if you add one.</span></div>')); return v; }
+  const now=new Date(), m0=new Date(now.getFullYear(),now.getMonth(),1).toISOString();
+  const month=trips.filter(t=>t.at>=m0);
+  const shops=trips.filter(t=>t.kind!=="errand"); const avg=shops.length? shops.reduce((a,t)=>a+t.total,0)/shops.length : 0;
+  v.appendChild(el('<div class="stats"><div class="stat"><b>'+money0(month.reduce((a,t)=>a+t.total,0))+'</b><span>'+now.toLocaleString("en-CA",{month:"long"})+' · '+month.length+' entr'+(month.length===1?"y":"ies")+'</span></div><div class="stat"><b>'+money0(avg)+'</b><span>Average grocery trip</span></div></div>'));
+  const card=el('<div class="rows"></div>');
+  trips.forEach(t=>{ const d=new Date(t.at);
+    const er=t.kind==="errand";
+    const b=el('<button class="trip">'+ctile(er?catById("errands"):{icon:"store",color:"#2F6650"})+'<span style="flex:1;min-width:0"><b>'+esc(er?t.storeName:d.toLocaleDateString("en-CA",{weekday:"short",month:"short",day:"numeric"}))+'</b><br><span class="muted">'+(er?esc(d.toLocaleDateString("en-CA",{weekday:"short",month:"short",day:"numeric"}))+' · Errand':esc(t.storeName)+' · '+t.items.length+' items')+'</span></span><span class="amt">'+(er&&!t.total?'<span class="muted">No cost</span>':money(t.total))+'</span></button>');
+    b.onclick=()=>tripSheet(t); card.appendChild(b); });
+  v.appendChild(card);
+  const st=Object.values(stats()).filter(r=>r.count>=2).sort((a,b)=>b.count-a.count).slice(0,8);
+  if(st.length){
+    const s=el('<section class="sect"><h2>Most frequent</h2><div class="card"></div></section>');
+    st.forEach(r=>s.querySelector(".card").appendChild(el('<div class="line"><span>'+esc(r.name)+'</span><span class="muted">'+r.count+'× · '+(r.every?every(r.every):"")+' · last '+ago(r.since)+'</span></div>')));
+    v.appendChild(s);
+  }
+  return v;
+}
+
+function viewSetup(){
+  const v=el('<div class="view"></div>');
+  // Stores
+  const ss=el('<section class="sect"><h2>Stores and aisles</h2><div class="card"></div></section>');
+  S.state.stores.forEach(st=>{ const n=aislesOf(st).length;
+    const line=el('<div class="line"><span><b>'+esc(st.name)+'</b>'+(st.id===S.state.lastStoreId?' <span class="link" style="font-size:.75em;margin-left:6px">Current</span>':'')+'<br><span class="muted">'+(n?n+" aisles mapped":"No aisle map yet")+'</span></span><button class="mini">Edit</button></div>');
+    line.querySelector("button").onclick=()=>storeSheet(st); ss.querySelector(".card").appendChild(line); });
+  const addS=el('<button class="link" style="align-self:flex-start">+ Add a store</button>'); addS.onclick=()=>storeSheet(null);
+  ss.querySelector(".card").appendChild(addS); v.appendChild(ss);
+  // Categories
+  const cs=el('<section class="sect"><h2>Categories</h2><div class="card"></div><p class="hint">Tap a category to rename it, change its icon or colour, merge it or delete it. The arrows set the order on your list.</p></section>');
+  const cc=cs.querySelector(".card");
+  cats().forEach((c,i)=>{
+    const line=el('<div class="catline"><button class="catedit" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;text-align:left;padding:4px 0">'+ctile(c)+'<span style="overflow-wrap:anywhere">'+esc(c.name)+'</span></button><button class="mini" aria-label="Move '+esc(c.name)+' up">'+ic("arrow-up")+'</button></div>');
+    line.querySelector(".catedit").onclick=()=>styleSheet(c);
+    const up=line.querySelector(".mini");
+    up.disabled=i===0; up.onclick=()=>{ const a=cats(); [a[i-1],a[i]]=[a[i],a[i-1]]; putState(); render(); };
+    cc.appendChild(line);
+  });
+  const addC=el('<button class="link" style="align-self:flex-start">+ Add a category</button>');
+  addC.onclick=()=>{ const id="c"+uid(); const c={id,icon:"package",color:FOREST[cats().length%FOREST.length][1],name:"New category"}; cats().splice(cats().length-1,0,c); putState(); render(); styleSheet(c); setTimeout(()=>{ const n=document.getElementById("catname"); n&&n.select(); },80); };
+  cc.appendChild(addC); v.appendChild(cs);
+  // Import
+  const im=el('<section class="sect"><h2>Import a list</h2><div class="card"><label class="f">Paste from Notepad or a text message<textarea id="imptext" placeholder="Produce:&#10;Lettuce&#10;Sour cream&#10;2x milk"></textarea></label><button class="btn">Add these items</button><div class="line" id="shotline"><span class="muted">Or read a screenshot of a list. This uses a little of your Claude usage.</span><label class="mini" style="cursor:pointer">Choose image<input type="file" accept="image/*" id="shotfile" hidden></label></div></div><p class="hint">Category headings are skipped: lines ending in a colon or starting with an emoji.</p></section>');
+  im.querySelector(".btn").onclick=()=>{ const ta=im.querySelector("textarea"); const n=addText(ta.value,{quiet:true}); if(n){ ta.value=""; toast("Imported "+n+" items"); } else toast("No new items found in that text"); };
+  im.querySelector("#shotfile").onchange=e=>readScreenshot(e.target.files[0],e.target);
+  sampleImages().then(ok=>{ if(!ok){ const l=im.querySelector("#shotline"); l&&(l.hidden=true); } });
+  v.appendChild(im);
+  // Account (sync.js)
+  if(typeof accountSection==="function") v.appendChild(accountSection());
+  // Backup & display
+  const bk=el('<section class="sect"><h2>Display and backup</h2><div class="card"><div class="line"><span>Large text</span><button class="mini" id="big"></button></div><div class="line"><span>Back up everything as a file</span><button class="mini" id="exp">Export</button></div><div class="line"><span>Restore from a backup file</span><label class="mini" style="cursor:pointer">Import<input type="file" accept="application/json,.json" id="impfile" hidden></label></div><div class="line"><span>Show hidden suggestions again</span><button class="mini" id="undis">Reset</button></div><div class="line"><span>Delete all data</span><button class="mini" id="wipe" style="color:var(--danger)">Delete…</button></div></div><p class="hint" id="syncnote"></p></section>');
+  const big=bk.querySelector("#big"); big.textContent=document.documentElement.classList.contains("big")?"On":"Off";
+  big.onclick=()=>{ const on=document.documentElement.classList.toggle("big"); prefs({big:on}); render(); };
+  bk.querySelector("#exp").onclick=exportData;
+  bk.querySelector("#impfile").onchange=e=>importBackup(e.target.files[0]);
+  bk.querySelector("#undis").onclick=()=>{ S.state.dismissed={}; putState(); toast("Suggestions reset"); };
+  bk.querySelector("#wipe").onclick=wipeSheet;
+  bk.querySelector("#syncnote").textContent= (typeof acct!=="undefined"&&acct.user) ? "Your list is saved on this phone and in your account, and works offline. Backup still makes a file copy." : "Your list is saved on this phone only and works offline. To move it to another phone, sign in above, or use Backup and Restore.";
+  v.appendChild(bk);
+  return v;
+}
+
+/* ---------- Sheets ---------- */
+function editItem(it){
+  sheet("Edit item", sh=>{
+    sh.appendChild(el('<label class="f">Item<input id="e-name"></label>'));
+    sh.appendChild(el('<div class="grid2"><label class="f">Quantity<input id="e-qty" placeholder="e.g. 2 or 1 kg"></label><label class="f">Buy at<select id="e-where"></select></label></div>'));
+    sh.appendChild(el('<label class="f">Note<input id="e-note" placeholder="Brand, size, type"></label>'));
+    const q=s=>sh.querySelector(s);
+    q("#e-name").value=it.name; q("#e-qty").value=it.qty||""; q("#e-note").value=it.note||"";
+    const w=q("#e-where"); w.appendChild(new Option("Any store",""));
+    S.state.stores.forEach(s=>w.appendChild(new Option(s.name,s.id))); w.value=it.where||"";
+    const c=catById(it.cat);
+    const cb=el('<button class="btn ghost wide" style="display:flex;align-items:center;gap:10px;text-align:left">'+ctile(c,true)+esc(c.name)+'<span class="muted" style="margin-left:auto">Change</span></button>');
+    cb.onclick=()=>{ save(false); pickCategory(S.items[it.id]||it); }; sh.appendChild(cb);
+    const fav=!!S.state.favorites[it.key];
+    const fb=el('<button class="btn ghost wide" style="display:flex;align-items:center;justify-content:center;gap:8px">'+ic("star")+(fav?"Remove from favorites":"Add to favorites")+'</button>');
+    fb.onclick=()=>{ if(fav) delete S.state.favorites[it.key]; else S.state.favorites[it.key]={name:it.name,cat:it.cat}; putState(); save(true); toast(fav?"Removed from favorites":"Added to favorites"); };
+    sh.appendChild(fb);
+    const row=el('<div class="grid2"><button class="btn danger">Delete</button><button class="btn">Save</button></div>');
+    row.firstElementChild.onclick=()=>{ closeSheet(); removeItem(it); };
+    row.lastElementChild.onclick=()=>save(true);
+    sh.appendChild(row);
+    function save(close){
+      const name=q("#e-name").value.trim()||it.name;
+      const n={...it,name,key:norm(name)||it.key,qty:q("#e-qty").value.trim(),note:q("#e-note").value.trim(),where:w.value};
+      if(n.key!==it.key){ const c2=classify(n.key); if(!S.state.catOverrides[it.key]){ n.cat=c2.cat; n.sec=c2.sec; } }
+      putItem(n); if(close){ closeSheet(); } render();
+    }
+  });
+}
+function pickCategory(it){
+  sheet("Category for "+it.name, sh=>{
+    const g=el('<div class="catgrid"></div>');
+    cats().forEach(c=>{ const b=el('<button aria-pressed="'+(c.id===it.cat)+'">'+ctile(c,true)+'<span>'+esc(c.name)+'</span></button>');
+      b.onclick=()=>{ closeSheet(); if(c.id!==it.cat) setCategory(it,c.id); }; g.appendChild(b); });
+    sh.appendChild(g);
+    sh.appendChild(el('<p class="hint">The app remembers this for "'+esc(it.name)+'" next time.</p>'));
+  });
+}
+function pickStore(){ ui.stop=null;
+  sheet("Where are you shopping?", sh=>{
+    const p=el('<div class="storepick"></div>');
+    S.state.stores.forEach(s=>{ const b=el('<button aria-pressed="'+(s.id===S.state.lastStoreId)+'">'+esc(s.name)+'</button>'); b.onclick=()=>{ S.state.lastStoreId=s.id; putState(); closeSheet(); render(); }; p.appendChild(b); });
+    sh.appendChild(p);
+    const f=el('<form class="addrow"><input class="inp" style="flex:1;min-width:0" placeholder="New store, e.g. Walmart Kingsway" id="ns"><button class="btn">Add</button></form>');
+    f.onsubmit=e=>{ e.preventDefault(); const n=f.querySelector("input").value.trim(); if(!n) return; const s={id:uid(),name:n,aisles:"",secOrder:{},order:{}}; S.state.stores.push(s); S.state.lastStoreId=s.id; putState(); closeSheet(); render(); };
+    sh.appendChild(f);
+  });
+}
+function setAisle(it, st){
+  const cur=(S.state.aisleOverrides[st.id]||{})[it.key]||"";
+  sheet("Aisle for "+it.name, sh=>{
+    sh.appendChild(el('<p class="muted" style="margin:0">At '+esc(st.name)+'. Next time, '+esc(it.name)+' will sort into this aisle.</p>'));
+    const f=el('<form class="addrow"><input class="inp" style="flex:1;min-width:0;font-size:1.4em" inputmode="text" placeholder="e.g. 5" id="aislein"><button class="btn">Save</button></form>');
+    f.querySelector("input").value=cur;
+    f.onsubmit=e=>{ e.preventDefault(); const a=f.querySelector("input").value.trim().toUpperCase().replace(/^AISLE\s*/,"");
+      const m=S.state.aisleOverrides[st.id]=S.state.aisleOverrides[st.id]||{};
+      if(a) m[it.key]=a; else delete m[it.key];
+      putState(); closeSheet(); render(); toast(a? it.name+" set to aisle "+a : "Aisle cleared"); };
+    sh.appendChild(f);
+    setTimeout(()=>f.querySelector("input").focus(),60);
+  });
+}
+function completeSheet(){
+  const scope=scopeItems(ui.stop||S.state.lastStoreId);
+  const inCart=scope.filter(i=>i.inCart);
+  let chosen=ui.stop||S.state.lastStoreId;
+  sheet("Complete trip", sh=>{
+    const p=el('<div class="storepick"></div>');
+    const draw=()=>{ p.replaceChildren(); S.state.stores.forEach(s=>{ const b=el('<button type="button" aria-pressed="'+(s.id===chosen)+'">'+esc(s.name)+'</button>'); b.onclick=()=>{ chosen=s.id; draw(); }; p.appendChild(b); }); };
+    draw();
+    sh.appendChild(el('<label class="f" style="margin-bottom:-6px">Store</label>')); sh.appendChild(p);
+    sh.appendChild(el('<label class="f">Total paid (CAD)<div class="money"><span>$</span><input id="tot" inputmode="decimal" placeholder="0.00" autocomplete="off"></div></label>'));
+    const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
+    sh.appendChild(el('<label class="f">Date and time<input type="datetime-local" id="when" value="'+d.toISOString().slice(0,16)+'"></label>'));
+    const rc=el('<div class="receipt"></div>');
+    inCart.forEach(i=>rc.appendChild(el('<div><span>'+esc(i.name)+'</span><span>'+esc(i.qty||"1")+'</span></div>')));
+    sh.appendChild(rc);
+    const left=scope.filter(i=>!i.inCart).length;
+    if(left) sh.appendChild(el('<p class="hint" style="margin:0">'+left+' item'+(left===1?"":"s")+' not in your cart will stay on the list.</p>'));
+    const err=el('<p class="hint" style="color:var(--danger);margin:0" hidden></p>'); sh.appendChild(err);
+    const skipB=el('<button class="link" style="align-self:center">Skip total for now</button>');
+    skipB.onclick=()=>{ const w=sh.querySelector("#when").value; closeSheet(); completeTrip({storeId:chosen, storeName:store(chosen).name, total:0, at:w?new Date(w).toISOString():new Date().toISOString()}); };
+    const b=el('<button class="btn wide">Save trip</button>');
+    b.onclick=()=>{ const t=parseFloat(String(sh.querySelector("#tot").value).replace(/[$,\s]/g,""));
+      if(!(t>=0)){ err.textContent="Enter the total from your receipt, like 84.37."; err.hidden=false; return; }
+      const w=sh.querySelector("#when").value; const at=w? new Date(w).toISOString() : new Date().toISOString();
+      closeSheet(); completeTrip({storeId:chosen, storeName:store(chosen).name, total:t, at}); };
+    sh.appendChild(b); sh.appendChild(skipB);
+    setTimeout(()=>sh.querySelector("#tot").focus(),80);
+  });
+}
+function tripSheet(t){
+  sheet(new Date(t.at).toLocaleString("en-CA",{weekday:"long",month:"long",day:"numeric",hour:"numeric",minute:"2-digit"}), sh=>{
+    sh.appendChild(el('<div class="grid2"><label class="f">Store<select id="ts"></select></label><label class="f">Total (CAD)<input id="tt" inputmode="decimal"></label></div>'));
+    const s=sh.querySelector("#ts"); S.state.stores.forEach(x=>s.appendChild(new Option(x.name,x.id)));
+    if(!S.state.stores.some(x=>x.id===t.storeId)) s.appendChild(new Option(t.storeName,t.storeId));
+    s.value=t.storeId; const tt=sh.querySelector("#tt"); tt.value=t.total.toFixed(2);
+    const card=el('<div class="rows"></div>');
+    t.items.forEach(i=>{ const r=el('<div class="row">'+ctile(catById(i.cat))+'<div class="main"><div class="name">'+(i.qty?'<span class="qty">'+esc(i.qty)+'</span>':'')+esc(i.name)+'</div>'+(i.note?'<div class="sub">'+esc(i.note)+'</div>':'')+'</div><button class="mini">+ List</button></div>');
+      r.querySelector("button").onclick=()=>{ addText((i.qty?i.qty+" ":"")+i.name); }; card.appendChild(r); });
+    sh.appendChild(card);
+    const row=el('<div class="grid2"><button class="btn danger">Delete trip</button><button class="btn">Save</button></div>');
+    let armed=false;
+    row.firstElementChild.onclick=e=>{ if(!armed){ armed=true; e.target.textContent="Tap again to delete"; return; } closeSheet(); const keep={...t}; delTrip(t.id); render(); toast("Trip deleted","Undo",()=>{ putTrip(keep); render(); }); };
+    row.lastElementChild.onclick=()=>{ const st=S.state.stores.find(x=>x.id===s.value); const tot=parseFloat(tt.value.replace(/[$,]/g,""));
+      putTrip({...t,storeId:s.value,storeName:st?st.name:t.storeName,total:tot>=0?Math.round(tot*100)/100:t.total}); closeSheet(); render(); toast("Trip updated"); };
+    sh.appendChild(row);
+  });
+}
+function storeSheet(st){
+  const isNew=!st;
+  sheet(isNew?"Add a store":st.name, sh=>{
+    sh.appendChild(el('<label class="f">Store name<input id="sn" placeholder="e.g. Superstore Calgary Trail"></label>'));
+    sh.appendChild(el('<label class="f">Aisle map, one aisle per line<textarea id="sa" placeholder="1: Produce&#10;5: Pasta, Sauces, Canned tomatoes&#10;6: Jam, Peanut butter, Condiments"></textarea></label>'));
+    sh.querySelector("#sn").value=st?st.name:""; sh.querySelector("#sa").value=st?st.aisles:"";
+    const ph=el('<div class="line"><span class="muted">Photograph the signs over each aisle and the app writes this map for you. This uses a little of your Claude usage.</span><label class="mini" style="cursor:pointer">Read signs<input type="file" accept="image/*" multiple hidden id="signs"></label></div>');
+    ph.querySelector("input").onchange=e=>readSigns(e.target.files, sh.querySelector("#sa"), e.target);
+    sampleImages().then(ok=>{ if(!ok) ph.hidden=true; });
+    sh.appendChild(ph);
+    sh.appendChild(el('<p class="hint" style="margin:0">Without a map, items sort by estimated store section, and the app learns your walking order from the order you check items off.</p>'));
+    const row=el('<div class="grid2"><button class="btn ghost">'+(isNew?"Cancel":"Delete store")+'</button><button class="btn">Save</button></div>');
+    let armed=false;
+    row.firstElementChild.onclick=e=>{ if(isNew){ closeSheet(); return; } if(S.state.stores.length<2){ toast("Keep at least one store"); return; }
+      if(!armed){ armed=true; e.target.textContent="Tap again to delete"; return; }
+      S.state.stores=S.state.stores.filter(x=>x.id!==st.id); if(S.state.lastStoreId===st.id) S.state.lastStoreId=S.state.stores[0].id; putState(); closeSheet(); render(); };
+    row.lastElementChild.onclick=()=>{ const name=sh.querySelector("#sn").value.trim(); if(!name){ toast("Give the store a name"); return; }
+      const aisles=sh.querySelector("#sa").value.trim();
+      if(isNew) S.state.stores.push({id:uid(),name,aisles,secOrder:{},order:{}}); else { st.name=name; st.aisles=aisles; }
+      putState(); closeSheet(); render(); toast("Store saved"+(parseAisles(aisles).length?" · "+parseAisles(aisles).length+" aisles":"")); };
+    sh.appendChild(row);
+  });
+}
+function styleSheet(c){
+  sheet(c.name, sh=>{
+    const nf=el('<label class="f">Name<input id="catname"></label>'); nf.querySelector("input").value=c.name;
+    nf.querySelector("input").onchange=e=>{ c.name=e.target.value.trim()||c.name; putState(); render(); };
+    sh.appendChild(nf);
+    sh.appendChild(el('<label class="f" style="margin-bottom:-6px">Icon</label>'));
+    const g=el('<div class="catgrid" style="grid-template-columns:repeat(6,1fr)"></div>');
+    ICONS.forEach(([n,l])=>{ const b=el('<button aria-label="'+l+'" aria-pressed="'+(c.icon===n)+'" style="justify-content:center;padding:10px 0">'+ic(n)+'</button>'); b.onclick=()=>{ c.icon=n; putState(); render(); styleSheet(c); }; g.appendChild(b); });
+    sh.appendChild(g);
+    sh.appendChild(el('<label class="f" style="margin-bottom:-6px">Colour</label>'));
+    const cg=el('<div class="catgrid" style="grid-template-columns:repeat(7,1fr)"></div>');
+    FOREST.forEach(([l,h])=>{ const b=el('<button aria-label="'+l+'" aria-pressed="'+(c.color===h)+'" style="height:40px;padding:0;background:'+h+'"></button>'); b.onclick=()=>{ c.color=h; putState(); render(); styleSheet(c); }; cg.appendChild(b); });
+    sh.appendChild(cg);
+    const mb=el('<button class="btn ghost wide">Merge or delete…</button>'); mb.onclick=()=>catSheet(c); sh.appendChild(mb);
+  });
+}
+function catSheet(c){
+  sheet(c.name, sh=>{
+    const others=cats().filter(x=>x.id!==c.id);
+    sh.appendChild(el('<label class="f">Merge into another category<select id="mg"><option value="">Choose…</option></select></label>'));
+    const mg=sh.querySelector("#mg"); others.forEach(o=>mg.appendChild(new Option(o.name,o.id)));
+    const b1=el('<button class="btn ghost wide">Merge</button>');
+    b1.onclick=()=>{ if(!mg.value) return; moveCat(c.id,mg.value); closeSheet(); toast("Merged into "+catById(mg.value).name); };
+    sh.appendChild(b1);
+    if(c.id!=="other"){ const b2=el('<button class="btn danger wide">Delete category</button>'); let armed=false;
+      b2.onclick=()=>{ if(!armed){ armed=true; b2.textContent="Tap again: items move to Other"; return; } moveCat(c.id,"other"); closeSheet(); toast("Category deleted"); };
+      sh.appendChild(b2); }
+  });
+}
+function moveCat(from,to){
+  itemsArr().filter(i=>i.cat===from).forEach(i=>putItem({...i,cat:to}));
+  for(const k in S.state.catOverrides) if(S.state.catOverrides[k].cat===from) S.state.catOverrides[k].cat=to;
+  S.state.categories=cats().filter(x=>x.id!==from); putState(); render();
+}
+function wipeSheet(){
+  sheet("Delete all data?", sh=>{
+    sh.appendChild(el('<p style="margin:0">This removes your list, every trip in History, your stores and aisle maps, and everything the app has learned. Export a backup first if you might want it back.</p>'));
+    const b=el('<button class="btn danger wide">Delete everything</button>');
+    b.onclick=()=>{ Object.keys(S.items).forEach(delItem); Object.keys(S.trips).forEach(delTrip); S.state=defaultState(); putState(); closeSheet(); render(); toast("All data deleted"); };
+    sh.appendChild(b);
+  });
+}
+
+/* ---------- Claude-powered reading (images) ---------- */
+let imgCaps=null;
+async function sampleImages(){ if(!sample) return false; if(imgCaps===null){ imgCaps = await sample.limits().catch(()=>null); } return !!(imgCaps&&imgCaps.images); }
+const SAMPLE_ERR={rate_limited:"Claude usage limit reached. Try again later.",not_granted:"Allow this page to use Claude, then try again.",images_unavailable:"Image reading isn't available here.",image_rejected:"That image couldn't be read. Try a PNG or JPG.",cancelled:"Cancelled."};
+async function readScreenshot(file, input){
+  if(!file) return; input.value="";
+  toast("Reading your screenshot…");
+  try{
+    const res=await sample.json('The attached image is a screenshot of a shopping list, from a notes app or a text message conversation. Extract only the items to buy. Ignore headings and category titles, timestamps, sender names and conversation. Return a JSON array of objects: {"name": string, "qty": string or null, "note": string or null}. Keep the item names as written.',{images:[file]});
+    const arr=Array.isArray(res)?res:(res&&res.items)||[];
+    const lines=arr.filter(x=>x&&x.name).map(x=>(x.qty?x.qty+" ":"")+x.name+(x.note?" ("+x.note+")":""));
+    if(!lines.length){ toast("No list items found in that image"); return; }
+    const n=addText(lines.join("\n"),{quiet:true});
+    toast(n? "Added "+n+" items from the screenshot" : "Everything in that screenshot is already on your list");
+  }catch(e){ toast(SAMPLE_ERR[e&&e.code]||"Couldn't read that image. Try again, or paste the text instead."); }
+}
+async function readSigns(files, ta, input){
+  if(!files||!files.length) return;
+  const max=(imgCaps&&imgCaps.images&&imgCaps.images.maxCount)||5;
+  const list=[...files].slice(0,max); input.value="";
+  toast("Reading "+list.length+" sign photo"+(list.length>1?"s":"")+"…");
+  try{
+    const res=await sample.json('These photos show the signs hanging over aisles in a grocery store. For each aisle sign, give the aisle number or code and the product words printed on it. Return a JSON array of objects: {"aisle": string, "labels": string[]}. One entry per aisle; merge duplicates. Skip anything that is not an aisle sign.',{images:list});
+    const arr=Array.isArray(res)?res:(res&&res.aisles)||[];
+    const cur=parseAisles(ta.value), have=new Set(cur.map(a=>a.aisle));
+    const add=arr.filter(a=>a&&a.aisle&&Array.isArray(a.labels)&&a.labels.length&&!have.has(String(a.aisle).toUpperCase()))
+      .map(a=>String(a.aisle).toUpperCase().replace(/^AISLE\s*/,"")+": "+a.labels.join(", "));
+    ta.value=[ta.value.trim(),...add].filter(Boolean).join("\n");
+    toast(add.length? "Found "+add.length+" aisles. Check them, then tap Save." : "No new aisle signs found in those photos");
+  }catch(e){ toast(SAMPLE_ERR[e&&e.code]||"Couldn't read those photos. Try again with clearer shots."); }
+}
+
+/* ---------- Backup ---------- */
+async function exportData(){
+  const data=JSON.stringify({app:"errands",exported:new Date().toISOString(),state:S.state,items:S.items,trips:S.trips},null,1);
+  const name="errands-backup-"+new Date().toISOString().slice(0,10)+".json";
+  try{ const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([data],{type:"application/json"})); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    prefs({lastBackup:Date.now()}); toast("Backup saved to your Downloads"); return; }catch(e){}
+  try{ await navigator.clipboard.writeText(data); prefs({lastBackup:Date.now()}); toast("Backup copied to the clipboard. Paste it into a note to keep it."); }
+  catch(e){ toast("Saving files isn't available here."); }
+}
+function importBackup(file){
+  if(!file) return;
+  file.text().then(txt=>{ const d=JSON.parse(txt); if(!d||!["errands","grocery-list"].includes(d.app)||!d.state) throw 0;
+    S.state=Object.assign(defaultState(),d.state); putState();
+    Object.values(d.items||{}).forEach(putItem); Object.values(d.trips||{}).forEach(putTrip);
+    render(); toast("Backup restored"); }).catch(()=>toast("That file isn't an Errands backup."));
+}
+
+/* ---------- Misc ---------- */
+function prefs(p){ lsSet("gp.prefs",Object.assign(lsGet("gp.prefs")||{},p)); }
+let lock=null;
+async function wake(on){
+  try{
+    if(on && !lock && navigator.wakeLock && document.visibilityState==="visible"){ lock=await navigator.wakeLock.request("screen"); lock.addEventListener("release",()=>{lock=null;}); }
+    if(!on && lock){ await lock.release(); lock=null; }
+  }catch(e){ lock=null; }
+}
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") wake(ui.tab==="shop"); });
+
+function renderRecent(){
+  const box=document.getElementById("recent"), inp=document.getElementById("addinput");
+  const q=norm(inp.value.split(",").pop());
+  box.replaceChildren();
+  if(!q || ui.tab!=="list"){ box.hidden=true; return; }
+  const on=new Set(itemsArr().map(i=>i.key));
+  const pool=new Map();
+  Object.values(stats()).sort((a,b)=>b.count-a.count).forEach(r=>pool.set(r.key,r.name));
+  Object.entries(S.state.favorites).forEach(([k,f])=>pool.set(k,f.name));
+  const hits=[...pool].filter(([k])=>!on.has(k)&&k!==q&&(k.startsWith(q)||k.split(" ").some(w=>w.startsWith(q)))).slice(0,5);
+  box.hidden=!hits.length;
+  hits.forEach(([k,name])=>{ const b=el('<button type="button">'+esc(name)+'</button>');
+    b.onclick=()=>{ const parts=inp.value.split(","); parts.pop(); inp.value=parts.join(","); if(inp.value.trim()) addText(inp.value); inp.value=""; addText(name); renderRecent(); inp.focus(); };
+    box.appendChild(b); });
+}
+document.getElementById("addinput").addEventListener("input",renderRecent);
+document.getElementById("addform").addEventListener("submit",e=>{
+  e.preventDefault(); const inp=document.getElementById("addinput");
+  if(inp.value.trim()){ addText(inp.value); inp.value=""; renderRecent(); }
+  inp.focus();
+});
+document.getElementById("addinput").addEventListener("paste",e=>{
+  const t=(e.clipboardData||window.clipboardData).getData("text");
+  if(t && t.includes("\n")){ e.preventDefault(); const n=addText(t,{quiet:true}); toast(n?"Added "+n+" items":"No new items in what you pasted"); }
+});
+document.getElementById("search").addEventListener("input",e=>{ ui.search=e.target.value; render(); });
+document.getElementById("searchbtn").onclick=()=>{ ui.searchOpen=!ui.searchOpen; if(!ui.searchOpen){ ui.search=""; document.getElementById("search").value=""; } render(); if(ui.searchOpen) document.getElementById("search").focus(); };
+document.getElementById("completebtn").onclick=completeSheet;
+
+function route(){ const h=location.hash.slice(1); ui.tab=["list","shop","history","setup"].includes(h)?h:"list"; closeSheet(); render(); }
+addEventListener("hashchange",route);
+route();
+
+/* ---------- Keep data safe (standalone) ---------- */
+try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(); }catch(e){}
+(function backupReminder(){
+  const p=lsGet("gp.prefs")||{}, now=Date.now(), D=864e5;
+  if(!p.firstUse){ prefs({firstUse:now}); return; }
+  const has=Object.keys(S.items).length+Object.keys(S.trips).length>=5;
+  if(has && now-Math.max(p.lastBackup||0,p.firstUse)>21*D && now-(p.remindedAt||0)>7*D){
+    prefs({remindedAt:now});
+    setTimeout(()=>toast("It's been a while. Back up your list?","Back up",exportData),1500);
+  }
+})();
+
+/* ---------- Connect to the artifact's storage (accounts: see sync.js) ---------- */
+if(!(window.claude&&claude.use)){ setSync("local"); render(); } else (async()=>{
+  setSync("busy");
+  try{
+    if(window.claude&&claude.use){
+      [db, sample, downloads] = await Promise.all([claude.use("db"),claude.use("sample"),claude.use("downloads")]);
+    }
+  }catch(e){}
+  if(!db){ setSync("local"); render(); return; }
+  let firstState=true, loaded=false;
+  const slow=setTimeout(()=>{ if(!loaded) setSync("off"); },10000);
+  db.doc("app/state").onSnapshot(s=>{
+    if(!s.metadata.fromCache){ loaded=true; clearTimeout(slow); }
+    if(firstState && !s.metadata.fromCache){ firstState=false;
+      if(!s.exists && !("app/state" in queue)) putState();   // first run: save default categories and store
+    }
+    applyRemote("state",s);
+  },()=>setSync("off"));
+  db.collection("items").onSnapshot(s=>applyRemote("items",s),()=>setSync("off"));
+  db.collection("trips").onSnapshot(s=>applyRemote("trips",s),()=>setSync("off"));
+  flush();
+  render();
+})();
+if("serviceWorker" in navigator) addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+</script>
+<script src="supabase.js"></script>
+<script src="sync.js"></script>
