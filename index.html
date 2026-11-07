@@ -1139,8 +1139,9 @@ async function readSigns(files, ta, input){
 async function exportData(){
   const data=JSON.stringify({app:"errands",exported:new Date().toISOString(),state:S.state,items:S.items,trips:S.trips},null,1);
   const name="errands-backup-"+new Date().toISOString().slice(0,10)+".json";
-  if(downloads){ try{ await downloads.save({filename:name,data}); return; }catch(e){ if(e&&e.code==="declined") return; } }
-  try{ await navigator.clipboard.writeText(data); toast("Backup copied to the clipboard. Paste it into a note to keep it."); }
+  try{ const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([data],{type:"application/json"})); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    prefs({lastBackup:Date.now()}); toast("Backup saved to your Downloads"); return; }catch(e){}
+  try{ await navigator.clipboard.writeText(data); prefs({lastBackup:Date.now()}); toast("Backup copied to the clipboard. Paste it into a note to keep it."); }
   catch(e){ toast("Saving files isn't available here."); }
 }
 function importBackup(file){
@@ -1194,6 +1195,18 @@ document.getElementById("completebtn").onclick=completeSheet;
 function route(){ const h=location.hash.slice(1); ui.tab=["list","shop","history","setup"].includes(h)?h:"list"; closeSheet(); render(); }
 addEventListener("hashchange",route);
 route();
+
+/* ---------- Keep data safe (standalone) ---------- */
+try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(); }catch(e){}
+(function backupReminder(){
+  const p=lsGet("gl.prefs")||{}, now=Date.now(), D=864e5;
+  if(!p.firstUse){ prefs({firstUse:now}); return; }
+  const has=Object.keys(S.items).length+Object.keys(S.trips).length>=5;
+  if(has && now-Math.max(p.lastBackup||0,p.firstUse)>21*D && now-(p.remindedAt||0)>7*D){
+    prefs({remindedAt:now});
+    setTimeout(()=>toast("It's been a while. Back up your list?","Back up",exportData),1500);
+  }
+})();
 
 /* ---------- Connect to the artifact's storage ---------- */
 (async()=>{
