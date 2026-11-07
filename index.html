@@ -59,6 +59,10 @@ main{padding-block:4px 180px}
 .qty{font-variant-numeric:tabular-nums;font-weight:600;color:var(--gold-light);margin-right:6px}
 .catbtn{width:38px;height:38px;border-radius:10px;background:var(--raised);flex:none;display:grid;place-items:center;line-height:0}
 .catbtn svg.lucide{width:20px;height:20px}
+.catbtn.dot{width:28px;height:38px;background:none;margin-left:-6px}
+.catbtn.dot i{display:block;width:12px;height:12px;border-radius:50%}
+.iconbtn{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;color:var(--muted)}
+.iconbtn[aria-pressed="true"]{color:var(--gold-light);background:var(--surface)}
 .ctile{line-height:0}
 .chip{display:inline-flex;align-items:center;gap:4px;font-size:.75em;border:1px solid var(--line);border-radius:999px;padding:1px 8px;color:var(--muted)}
 
@@ -109,7 +113,7 @@ nav.tabs a{display:flex;flex-direction:column;align-items:center;gap:3px;padding
 nav.tabs a svg{width:22px;height:22px}
 nav.tabs a[aria-current="page"]{color:var(--accent)}
 
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(150px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--raised);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:10px 10px 10px 16px;display:flex;align-items:center;gap:14px;max-width:calc(100% - 32px);box-shadow:0 6px 24px rgba(0,0,0,.35);font-size:.9em}
+.toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 8px);width:max-content;z-index:30;background:var(--raised);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:10px 10px 10px 16px;display:flex;align-items:center;gap:14px;max-width:calc(100% - 32px);box-shadow:0 6px 24px rgba(0,0,0,.35);font-size:.9em}
 .toast button{color:var(--gold-light);font-weight:600;padding:4px 6px}
 
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:20}
@@ -166,7 +170,7 @@ svg.lucide{width:1.15em;height:1.15em;stroke-width:2;flex:none}
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="c-o-bold" viewBox="0 0 100 100"><g fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="miter"><rect x="20" y="20" width="60" height="60"/><rect x="20" y="20" width="60" height="60" transform="rotate(45 50 50)"/><circle cx="50" cy="50" r="22"/></g><g fill="currentColor"><circle cx="50" cy="44" r="7"/><path d="M45.5 47.5 L43.5 62 H56.5 L54.5 47.5 Z"/></g></symbol></defs></svg>
 <div id="app">
   <header class="wrap" id="hdr">
-    <div class="hrow"><span class="brand"><svg class="mk" viewBox="0 0 100 100" aria-hidden="true"><use href="#c-o-bold"/></svg><span class="gw">KEY<b>ROSE</b></span></span><span class="sync" id="sync"><i></i><span>Loading</span></span></div>
+    <div class="hrow"><span class="brand"><svg class="mk" viewBox="0 0 100 100" aria-hidden="true"><use href="#c-o-bold"/></svg><span class="gw">KEY<b>ROSE</b></span></span><span class="sync" id="sync"><i></i><span>Loading</span></span><button class="iconbtn" id="searchbtn" aria-label="Search your list" aria-pressed="false" hidden><i data-lucide="search"></i></button></div>
     <h1 id="title">Errands</h1>
     <p class="hint" id="pvnote" style="margin:0" hidden>Preview with sample data. Your real list isn't touched.</p>
     <input id="search" class="search" type="search" placeholder="Search your list" autocomplete="off" hidden>
@@ -202,6 +206,7 @@ const SVG = {
   "receipt-text":'<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M14 8H8"/><path d="M16 12H8"/><path d="M13 16H8"/>',
   "sliders-horizontal":'<path d="M21 4h-7"/><path d="M10 4H3"/><path d="M21 12h-9"/><path d="M8 12H3"/><path d="M21 20h-5"/><path d="M12 20H3"/><path d="M14 2v4"/><path d="M8 10v4"/><path d="M16 18v4"/>',
   x:'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
   star:'<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/>',
   "arrow-up":'<path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>',
   ellipsis:'<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
@@ -533,7 +538,7 @@ function addText(text, opts={}){
   const parts=splitItems(text).filter(p=>!isHeaderLine(p)).map(parseItem).filter(Boolean);
   const added=[]; let dupe=null;
   for(const p of parts){
-    const ex=itemsArr().find(i=>i.key===p.key);
+    const ex=itemsArr().find(i=>i.key===p.key && (i.where||"")===where);
     if(ex){ if(parts.length===1&&!opts.quiet) dupe=ex; else if(!opts.quiet){ dupe=ex; } continue; }
     const {cat,sec}=classify(p.key);
     const it={id:uid(),name:p.name,key:p.key,qty:p.qty,note:p.note,cat,sec,where,inCart:false,skipped:false,addedAt:Date.now()};
@@ -608,13 +613,18 @@ function completeTrip({storeId,storeName,total,at}){
 }
 
 /* ---------- UI primitives ---------- */
-let toastTimer=null;
+let toastTimer=null; const undoStack=[];
+function runUndo(){ const fn=undoStack.pop(); if(!fn) return; fn();
+  if(undoStack.length){ const more=undoStack.pop(); toast("Undone","Undo",more); } else toast("Undone"); }
 function toast(msg, ...acts){
   const actLabel=acts[0];
   document.querySelectorAll(".toast").forEach(t=>t.remove());
   const t=document.createElement("div"); t.className="toast"; t.setAttribute("role","status");
   t.innerHTML="<span>"+esc(msg)+"</span>";
-  for(let i=0;i+1<acts.length;i+=2){ const fn=acts[i+1]; const b=document.createElement("button"); b.textContent=acts[i]; b.onclick=()=>{ t.remove(); fn(); }; t.appendChild(b); }
+  for(let i=0;i+1<acts.length;i+=2){ const label=acts[i], fn=acts[i+1]; const b=document.createElement("button"); b.textContent=label;
+    if(label==="Undo"){ undoStack.push(fn); if(undoStack.length>5) undoStack.shift(); b.onclick=()=>{ t.remove(); runUndo(); }; }
+    else b.onclick=()=>{ t.remove(); fn(); };
+    t.appendChild(b); }
   document.body.appendChild(t); icons();
   clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.remove(), actLabel?(acts.length>2?7000:5000):2600);
 }
@@ -631,23 +641,27 @@ function sheet(title, build){
 function closeSheet(){ document.querySelectorAll(".scrim,.sheet").forEach(e=>e.remove()); }
 function el(html){ const t=document.createElement("template"); t.innerHTML=html.trim(); return t.content.firstElementChild; }
 
-function swipeRow(rowEl, {left, right, leftLabel, rightLabel, tap}){
+function swipeRow(rowEl, {left, right, leftLabel, rightLabel, tap, long}){
   const wrap=document.createElement("div"); wrap.className="swipe";
   const under=el('<div class="under"><span class="l">'+esc(rightLabel||"")+'</span><span class="r">'+esc(leftLabel||"")+'</span></div>');
   wrap.append(under,rowEl);
   let x0=null,y0=0,dx=0,locked=false,moved=false,pid=null;
-  rowEl.addEventListener("pointerdown",e=>{ if(e.button>0) return; x0=e.clientX; y0=e.clientY; dx=0; locked=false; moved=false; pid=e.pointerId; });
+  let lt=null, longed=false;
+  rowEl.addEventListener("pointerdown",e=>{ if(e.button>0) return; x0=e.clientX; y0=e.clientY; dx=0; locked=false; moved=false; longed=false; pid=e.pointerId;
+    clearTimeout(lt); if(long && !e.target.closest("[data-stop]")) lt=setTimeout(()=>{ if(!moved){ longed=true; x0=null; try{navigator.vibrate&&navigator.vibrate(20);}catch(_){} long(); } },500); });
+  rowEl.addEventListener("contextmenu",e=>{ if(long) e.preventDefault(); });
   rowEl.addEventListener("pointermove",e=>{ if(x0===null||e.pointerId!==pid) return;
     const ddx=e.clientX-x0, ddy=e.clientY-y0;
+    if(Math.abs(ddx)>8||Math.abs(ddy)>8) clearTimeout(lt);
     if(!locked){ if(Math.abs(ddy)>10&&Math.abs(ddy)>Math.abs(ddx)){ x0=null; return; } if(Math.abs(ddx)>10){ locked=true; try{rowEl.setPointerCapture(pid);}catch(_){} } }
     if(locked){ moved=true; dx=ddx; if((dx>0&&!right)||(dx<0&&!left)) dx=dx/4; rowEl.style.transform="translateX("+dx+"px)"; }
   });
-  const end=e=>{ if(x0===null) return; x0=null; rowEl.style.transition="transform .18s"; rowEl.style.transform="";
+  const end=e=>{ clearTimeout(lt); if(x0===null) return; x0=null; rowEl.style.transition="transform .18s"; rowEl.style.transform="";
     setTimeout(()=>rowEl.style.transition="",200);
     if(moved){ if(dx<-90&&left) left(); else if(dx>90&&right) right(); }
   };
   rowEl.addEventListener("pointerup",end); rowEl.addEventListener("pointercancel",()=>{x0=null;rowEl.style.transform="";});
-  rowEl.addEventListener("click",e=>{ if(moved){ e.preventDefault(); e.stopPropagation(); moved=false; return; } if(tap && !e.target.closest("[data-stop]")) tap(e); });
+  rowEl.addEventListener("click",e=>{ if(longed){ e.preventDefault(); longed=false; return; } if(moved){ e.preventDefault(); e.stopPropagation(); moved=false; return; } if(tap && !e.target.closest("[data-stop]")) tap(e); });
   return wrap;
 }
 
@@ -657,7 +671,9 @@ function render(){
   const t=ui.tab;
   document.querySelectorAll("nav.tabs a").forEach(a=>{ if(a.dataset.tab===t) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
   document.getElementById("addbar").hidden = t!=="list";
-  document.getElementById("search").hidden = t!=="list" || itemsArr().length<6;
+  const sb=document.getElementById("searchbtn"); sb.hidden = t!=="list" || itemsArr().length<6;
+  document.getElementById("search").hidden = sb.hidden || !ui.searchOpen;
+  sb.setAttribute("aria-pressed", !!ui.searchOpen);
   const onStops = t==="shop" && !ui.stop && multiStop();
   const nCart=onStops?0:scopeItems(ui.stop||S.state.lastStoreId).filter(i=>i.inCart).length;
   document.getElementById("shopbar").hidden = t!=="shop" || nCart===0;
@@ -676,7 +692,7 @@ function icons(){ document.querySelectorAll("i[data-lucide]").forEach(i=>{ const
 function itemRowList(it){
   const c=catById(it.cat);
   const st=it.where? S.state.stores.find(s=>s.id===it.where):null;
-  const row=el('<div class="row"><button class="catbtn" style="background:'+c.color+';color:#EFEBE5" data-stop aria-label="Change category, now '+esc(c.name)+'">'+ic(c.icon)+'</button>'+
+  const row=el('<div class="row"><button class="catbtn dot" data-stop aria-label="Change category, now '+esc(c.name)+'"><i style="background:'+c.color+'"></i></button>'+
     '<div class="main"><div class="name">'+(it.qty?'<span class="qty">'+esc(it.qty)+'</span>':'')+esc(it.name)+'</div>'+
     ((it.note||st)?'<div class="sub">'+esc(it.note)+(st?' <span class="chip">'+ic("store")+esc(st.name)+'</span>':'')+'</div>':'')+'</div></div>');
   row.querySelector(".catbtn").onclick=e=>{ e.stopPropagation(); pickCategory(it); };
@@ -708,11 +724,16 @@ function viewList(){
     return v;
   }
   if(all.length>3){
-    const seg=el('<div class="seg" role="group" aria-label="Group by"><button data-m="cat">By category</button><button data-m="store">Store order</button></div>');
+    const seg=el('<div class="seg" role="group" aria-label="Group by"><button data-m="cat">By category</button><button data-m="stop">By stop</button></div>');
     seg.querySelectorAll("button").forEach(b=>{ b.setAttribute("aria-pressed",ui.listMode===b.dataset.m); b.onclick=()=>{ ui.listMode=b.dataset.m; prefs({listMode:ui.listMode}); render(); }; });
     v.appendChild(seg);
   }
-  if(ui.listMode==="store"){ shopGroups(list, store(), false).forEach(g=>v.appendChild(groupEl(g.title,g.tag,g.items.length,g.items.map(itemRowList),null,g.cat))); }
+  if(ui.listMode==="stop"){
+    const groups=[]; const main=store();
+    S.state.stores.forEach(st=>{ const ids=new Set(scopeItems(st.id).map(i=>i.id)); const its=list.filter(i=>ids.has(i.id)); if(its.length) groups.push([st.name,its,{icon:"store",color:"#2F6650"}]); });
+    const tasks=list.filter(isTask); if(tasks.length) groups.push(["Errands",tasks,catById("errands")]);
+    groups.forEach(([t,its,c])=>v.appendChild(groupEl(t,null,its.length,its.sort((a,b)=>a.addedAt-b.addedAt).map(itemRowList),null,c)));
+  }
   else cats().forEach(c=>{
     const its=list.filter(i=>(catById(i.cat).id)===c.id).sort((a,b)=>a.addedAt-b.addedAt);
     if(its.length) v.appendChild(groupEl(c.name,null,its.length,its.map(itemRowList),null,c));
@@ -755,8 +776,8 @@ function viewStops(){
   const stops=stopsList();
   if(stops.length){
     const card=el('<div class="rows"></div>');
-    stops.forEach(({st,items})=>{ const done=items.filter(i=>i.inCart&&!i.skipped).length;
-      const b=el('<button class="trip">'+ctile({icon:"store",color:"#2F6650"})+'<span style="flex:1;min-width:0"><b>'+esc(st.name)+'</b><br><span class="muted">'+(done?done+' of '+items.length+' in cart':items.length+' item'+(items.length===1?'':'s'))+'</span></span>'+ic("chevron-right")+'</button>');
+    stops.forEach(({st,items})=>{ const act=items.filter(i=>!i.skipped), done=act.filter(i=>i.inCart).length, sk=items.length-act.length;
+      const b=el('<button class="trip">'+ctile({icon:"store",color:"#2F6650"})+'<span style="flex:1;min-width:0"><b>'+esc(st.name)+'</b><br><span class="muted">'+(done?done+' of '+act.length+' in cart':act.length+' item'+(act.length===1?'':'s'))+(sk?' · '+sk+' not found':'')+'</span></span>'+ic("chevron-right")+'</button>');
       b.onclick=()=>{ ui.stop=st.id; render(); scrollTo(0,0); }; card.appendChild(b); });
     v.appendChild(el('<section class="strip"><h2>Stores</h2></section>')).appendChild(card);
   }
@@ -821,7 +842,7 @@ function viewShop(){
     b.style.borderTop="0"; b.onclick=()=>{ ui.open[k]=!isOpen; render(); };
     v.appendChild(groupEl("Other stores",null,elsewhere.length,isOpen?elsewhere.map(i=>shopRow(i,st)):[],b));
   }
-  v.appendChild(el('<p class="hint">Tap to put an item in your cart. Swipe left if you can\'t find it. Tap the aisle tag to set the real aisle.</p>'));
+  v.appendChild(el('<p class="hint">Tap to put an item in your cart. Press and hold an item for Didn\'t find, Set aisle and Edit.</p>'));
   return v;
 }
 function shopRow(it, st){
@@ -831,10 +852,16 @@ function shopRow(it, st){
   const row=el('<div class="row'+(it.inCart?" incart":"")+'" role="checkbox" aria-checked="'+it.inCart+'" tabindex="0"><span class="box"></span>'+
     '<div class="main"><div class="name">'+(it.qty?'<span class="qty">'+esc(it.qty)+'</span>':'')+esc(it.name)+'</div>'+
     ((it.note||other)?'<div class="sub">'+esc(it.note)+(other?' <span class="chip">'+ic("store")+esc(other.name)+'</span>':'')+'</div>':'')+'</div>'+
-    '<button class="aisle'+(loc.src==="est"?" est":"")+'" data-stop aria-label="Set aisle for '+esc(it.name)+'">'+esc(tagTxt)+'</button></div>');
-  row.querySelector(".aisle").onclick=e=>{ e.stopPropagation(); setAisle(it,st); };
+    ((ui.shopMode==="aisle"&&loc.aisle)?'':'<button class="aisle'+(loc.src==="est"?" est":"")+'" data-stop aria-label="Set aisle for '+esc(it.name)+'">'+esc(tagTxt)+'</button>')+'</div>');
+  const ab=row.querySelector(".aisle"); if(ab) ab.onclick=e=>{ e.stopPropagation(); setAisle(it,st); };
   row.onkeydown=e=>{ if(e.key===" "||e.key==="Enter"){ e.preventDefault(); it.skipped?skipItem(it):toggleCart(it); } };
-  return swipeRow(row,{left:()=>skipItem(it), leftLabel:it.skipped?"Back on trip":"Didn't find", tap:()=> it.skipped?skipItem(it):toggleCart(it)});
+  return swipeRow(row,{left:()=>skipItem(it), leftLabel:it.skipped?"Back on trip":"Didn't find", tap:()=> it.skipped?skipItem(it):toggleCart(it), long:()=>rowActions(it,st)});
+}
+function rowActions(it, st){
+  sheet(it.name, sh=>{
+    const acts=[[it.skipped?"Back on this trip":"Didn't find it",()=>skipItem(it)],["Set aisle at "+st.name,()=>setAisle(it,st)],["Edit item",()=>editItem(it)]];
+    acts.forEach(([l,fn])=>{ const b=el('<button class="btn ghost wide">'+esc(l)+'</button>'); b.onclick=()=>{ closeSheet(); fn(); }; sh.appendChild(b); });
+  });
 }
 
 function viewHistory(){
@@ -865,25 +892,22 @@ function viewSetup(){
   // Stores
   const ss=el('<section class="sect"><h2>Stores and aisles</h2><div class="card"></div></section>');
   S.state.stores.forEach(st=>{ const n=aislesOf(st).length;
-    const line=el('<div class="line"><span><b>'+esc(st.name)+'</b>'+(st.id===S.state.lastStoreId?' <span class="chip">current</span>':'')+'<br><span class="muted">'+(n?n+" aisles mapped":"No aisle map yet")+'</span></span><button class="mini">Edit</button></div>');
+    const line=el('<div class="line"><span><b>'+esc(st.name)+'</b>'+(st.id===S.state.lastStoreId?' <span class="link" style="font-size:.75em;margin-left:6px">Current</span>':'')+'<br><span class="muted">'+(n?n+" aisles mapped":"No aisle map yet")+'</span></span><button class="mini">Edit</button></div>');
     line.querySelector("button").onclick=()=>storeSheet(st); ss.querySelector(".card").appendChild(line); });
-  const addS=el('<button class="link">+ Add a store</button>'); addS.onclick=()=>storeSheet(null);
+  const addS=el('<button class="link" style="align-self:flex-start">+ Add a store</button>'); addS.onclick=()=>storeSheet(null);
   ss.querySelector(".card").appendChild(addS); v.appendChild(ss);
   // Categories
-  const cs=el('<section class="sect"><h2>Categories</h2><div class="card"></div><p class="hint">Tap a tile to change its icon and colour. Rename in place. The arrows set the order on your list. Deleting a category moves its items to Other.</p></section>');
+  const cs=el('<section class="sect"><h2>Categories</h2><div class="card"></div><p class="hint">Tap a category to rename it, change its icon or colour, merge it or delete it. The arrows set the order on your list.</p></section>');
   const cc=cs.querySelector(".card");
   cats().forEach((c,i)=>{
-    const line=el('<div class="catline"><button class="catbtn" aria-label="Icon and colour for '+esc(c.name)+'" style="background:'+c.color+';color:#EFEBE5">'+ic(c.icon)+'</button><input class="inp nm" aria-label="Category name"><button class="mini" aria-label="Move up">'+ic("arrow-up")+'</button><button class="mini" aria-label="More">'+ic("ellipsis")+'</button></div>');
-    const nm=line.querySelector("input"); nm.value=c.name; nm.id="cn-"+c.id;
-    nm.onchange=()=>{ c.name=nm.value.trim()||c.name; putState(); };
-    line.querySelector(".catbtn").onclick=()=>styleSheet(c);
-    const [,up,more]=line.querySelectorAll("button");
+    const line=el('<div class="catline"><button class="catedit" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;text-align:left;padding:4px 0">'+ctile(c)+'<span style="overflow-wrap:anywhere">'+esc(c.name)+'</span></button><button class="mini" aria-label="Move '+esc(c.name)+' up">'+ic("arrow-up")+'</button></div>');
+    line.querySelector(".catedit").onclick=()=>styleSheet(c);
+    const up=line.querySelector(".mini");
     up.disabled=i===0; up.onclick=()=>{ const a=cats(); [a[i-1],a[i]]=[a[i],a[i-1]]; putState(); render(); };
-    more.onclick=()=>catSheet(c);
     cc.appendChild(line);
   });
-  const addC=el('<button class="link">+ Add a category</button>');
-  addC.onclick=()=>{ const id="c"+uid(); cats().splice(cats().length-1,0,{id,icon:"package",color:FOREST[cats().length%FOREST.length][1],name:"New category"}); putState(); render(); setTimeout(()=>{ const n=document.getElementById("cn-"+id); n&&n.select(); },50); };
+  const addC=el('<button class="link" style="align-self:flex-start">+ Add a category</button>');
+  addC.onclick=()=>{ const id="c"+uid(); const c={id,icon:"package",color:FOREST[cats().length%FOREST.length][1],name:"New category"}; cats().splice(cats().length-1,0,c); putState(); render(); styleSheet(c); setTimeout(()=>{ const n=document.getElementById("catname"); n&&n.select(); },80); };
   cc.appendChild(addC); v.appendChild(cs);
   // Import
   const im=el('<section class="sect"><h2>Import a list</h2><div class="card"><label class="f">Paste from Notepad or a text message<textarea id="imptext" placeholder="Produce:&#10;Lettuce&#10;Sour cream&#10;2x milk"></textarea></label><button class="btn">Add these items</button><div class="line" id="shotline"><span class="muted">Or read a screenshot of a list. This uses a little of your Claude usage.</span><label class="mini" style="cursor:pointer">Choose image<input type="file" accept="image/*" id="shotfile" hidden></label></div></div><p class="hint">Category headings are skipped: lines ending in a colon or starting with an emoji.</p></section>');
@@ -984,12 +1008,14 @@ function completeSheet(){
     const left=scope.filter(i=>!i.inCart).length;
     if(left) sh.appendChild(el('<p class="hint" style="margin:0">'+left+' item'+(left===1?"":"s")+' not in your cart will stay on the list.</p>'));
     const err=el('<p class="hint" style="color:var(--danger);margin:0" hidden></p>'); sh.appendChild(err);
+    const skipB=el('<button class="link" style="align-self:center">Skip total for now</button>');
+    skipB.onclick=()=>{ const w=sh.querySelector("#when").value; closeSheet(); completeTrip({storeId:chosen, storeName:store(chosen).name, total:0, at:w?new Date(w).toISOString():new Date().toISOString()}); };
     const b=el('<button class="btn wide">Save trip</button>');
     b.onclick=()=>{ const t=parseFloat(String(sh.querySelector("#tot").value).replace(/[$,\s]/g,""));
       if(!(t>=0)){ err.textContent="Enter the total from your receipt, like 84.37."; err.hidden=false; return; }
       const w=sh.querySelector("#when").value; const at=w? new Date(w).toISOString() : new Date().toISOString();
       closeSheet(); completeTrip({storeId:chosen, storeName:store(chosen).name, total:t, at}); };
-    sh.appendChild(b);
+    sh.appendChild(b); sh.appendChild(skipB);
     setTimeout(()=>sh.querySelector("#tot").focus(),80);
   });
 }
@@ -1036,6 +1062,9 @@ function storeSheet(st){
 }
 function styleSheet(c){
   sheet(c.name, sh=>{
+    const nf=el('<label class="f">Name<input id="catname"></label>'); nf.querySelector("input").value=c.name;
+    nf.querySelector("input").onchange=e=>{ c.name=e.target.value.trim()||c.name; putState(); render(); };
+    sh.appendChild(nf);
     sh.appendChild(el('<label class="f" style="margin-bottom:-6px">Icon</label>'));
     const g=el('<div class="catgrid" style="grid-template-columns:repeat(6,1fr)"></div>');
     ICONS.forEach(([n,l])=>{ const b=el('<button aria-label="'+l+'" aria-pressed="'+(c.icon===n)+'" style="justify-content:center;padding:10px 0">'+ic(n)+'</button>'); b.onclick=()=>{ c.icon=n; putState(); render(); styleSheet(c); }; g.appendChild(b); });
@@ -1044,6 +1073,7 @@ function styleSheet(c){
     const cg=el('<div class="catgrid" style="grid-template-columns:repeat(7,1fr)"></div>');
     FOREST.forEach(([l,h])=>{ const b=el('<button aria-label="'+l+'" aria-pressed="'+(c.color===h)+'" style="height:40px;padding:0;background:'+h+'"></button>'); b.onclick=()=>{ c.color=h; putState(); render(); styleSheet(c); }; cg.appendChild(b); });
     sh.appendChild(cg);
+    const mb=el('<button class="btn ghost wide">Merge or delete…</button>'); mb.onclick=()=>catSheet(c); sh.appendChild(mb);
   });
 }
 function catSheet(c){
@@ -1158,6 +1188,7 @@ document.getElementById("addinput").addEventListener("paste",e=>{
   if(t && t.includes("\n")){ e.preventDefault(); const n=addText(t,{quiet:true}); toast(n?"Added "+n+" items":"No new items in what you pasted"); }
 });
 document.getElementById("search").addEventListener("input",e=>{ ui.search=e.target.value; render(); });
+document.getElementById("searchbtn").onclick=()=>{ ui.searchOpen=!ui.searchOpen; if(!ui.searchOpen){ ui.search=""; document.getElementById("search").value=""; } render(); if(ui.searchOpen) document.getElementById("search").focus(); };
 document.getElementById("completebtn").onclick=completeSheet;
 
 function route(){ const h=location.hash.slice(1); ui.tab=["list","shop","history","setup"].includes(h)?h:"list"; closeSheet(); render(); }
