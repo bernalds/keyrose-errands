@@ -118,6 +118,8 @@ nav.tabs a[aria-current="page"]{color:var(--accent)}
 
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:20}
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--surface);border-radius:18px 18px 0 0;max-height:88%;overflow:auto;padding-block:14px calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
+.sheet>*{flex-shrink:0}
+.sheet{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .sheet h3{margin:0;font-size:1.25em;font-weight:700;display:flex;justify-content:space-between;align-items:center}
 .sheet h3 button{color:var(--muted);font-size:1em;padding:4px 8px}
 label.f{display:flex;flex-direction:column;gap:5px;font-size:.85em;color:var(--muted)}
